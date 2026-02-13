@@ -58,29 +58,22 @@ export class Orpheus {
     return { pitch, spelling }
   }
 
-  static generateScale(key: PitchSpelling, intervals: Interval[]) {
-    const rootPitch = NOTES_PITCH.get(key)
-    if (rootPitch === undefined) {
-      throw new Error(`Invalid key: ${key}`)
+  static generateScale(root: PitchSpelling, intervals: Interval[]) {
+    const spellings: PitchSpelling[] = [root]
+    const pitches: number[] = [NOTES_PITCH.get(root)!]
+
+    for (let i = 0; i < intervals.length; i++) {
+      const interval = intervals[i]!
+      const prevPitch = pitches[i]!
+      const prevSpelling = spellings[i]!
+
+      const { pitch, spelling } = this.nextNote(prevPitch, prevSpelling, interval)
+
+      pitches.push(pitch)
+      spellings.push(spelling)
     }
 
-    return intervals.reduce(
-      (acc, interval) => {
-        const { pitch, spelling } = this.nextNote(
-          acc.pitches[acc.pitches.length - 1]!,
-          acc.spellings[acc.spellings.length - 1]!,
-          interval,
-        )
-
-        acc.pitches.push(pitch)
-        acc.spellings.push(spelling)
-        return acc
-      },
-      {
-        pitches: [rootPitch],
-        spellings: [key],
-      } as { pitches: number[]; spellings: PitchSpelling[] },
-    )
+    return { pitches, spellings }
   }
 
   static generateChord(root: PitchSpelling, chordType: ChordType): Chord {
@@ -108,7 +101,6 @@ export class Orpheus {
     }
 
     const voicings: ChordNote[][] = [rootVoicing]
-    console.log(`\nRoot Position Generated: ${rootVoicing.map((n) => n.spelling).join('-')}`)
 
     for (let i = 1; i < rootVoicing.length; i++) {
       const inversion = [...rootVoicing.slice(i), ...rootVoicing.slice(0, i)]

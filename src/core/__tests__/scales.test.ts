@@ -55,3 +55,73 @@ describe('Universal Scale Generation', () => {
     expect(result.spellings).toEqual(['B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'])
   })
 })
+
+describe('Advanced Scale Validation', () => {
+  it('should generate the Lydian mode with an Augmented Fourth', () => {
+    const result = Orpheus.generateScale('C', SCALES.LYDIAN)
+    // 1-2-3-#4-5-6-7
+    expect(result.spellings).toEqual(['C', 'D', 'E', 'F#', 'G', 'A', 'B', 'C'])
+    expect(result.pitches).toEqual([0, 2, 4, 6, 7, 9, 11, 0])
+  })
+
+  it('should generate the Phrygian mode with a Minor Second', () => {
+    const result = Orpheus.generateScale('E', SCALES.PHRYGIAN)
+    // 1-b2-b3-4-5-b6-b7
+    expect(result.spellings).toEqual(['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E'])
+  })
+
+  it('should handle the Blues scale with a Chromatic "Blue Note" (d5)', () => {
+    const result = Orpheus.generateScale('A', SCALES.BLUES)
+    // 1-b3-4-b5-5-b7
+    // A to b3 (C), A to 4 (D), A to b5 (Eb), A to 5 (E), A to b7 (G)
+    expect(result.spellings).toEqual(['A', 'C', 'D', 'Eb', 'E', 'G', 'A'])
+    expect(result.pitches).toEqual([9, 0, 2, 3, 4, 7, 9])
+  })
+
+  it('should generate a Whole Tone scale with Augmented intervals', () => {
+    const result = Orpheus.generateScale('C', SCALES.WHOLE_TONE)
+    // 1-2-3-#4-#5-b7
+    // C-D-E-F#-G#-Bb-C
+    expect(result.spellings).toEqual(['C', 'D', 'E', 'F#', 'G#', 'Bb', 'C'])
+  })
+
+  it('should correctly spell the Melodic Minor (Ascending)', () => {
+    const result = Orpheus.generateScale('A', SCALES.MELODIC_MINOR)
+    // 1-2-b3-4-5-6-7
+    expect(result.spellings).toEqual(['A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A'])
+  })
+
+  it('should handle the "Nightmare" key of D# Major', () => {
+    const result = Orpheus.generateScale('D#', SCALES.MAJOR)
+    // D#-E#-F##-G#-A#-B#-C##-D#
+    expect(result.spellings).toEqual(['D#', 'E#', 'F##', 'G#', 'A#', 'B#', 'C##', 'D#'])
+  })
+
+  it('should generate Minor Pentatonic and skip degrees correctly', () => {
+    const result = Orpheus.generateScale('E', SCALES.MINOR_PENTATONIC)
+    // 1-b3-4-5-b7 (E-G-A-B-D)
+    expect(result.spellings).toEqual(['E', 'G', 'A', 'B', 'D', 'E'])
+    expect(result.pitches).toEqual([4, 7, 9, 11, 2, 4])
+  })
+
+  it('should generate a full Chromatic scale without duplicate letters', () => {
+    const result = Orpheus.generateScale('C', SCALES.CHROMATIC)
+    // This is a stress test for the resolveEnharmonic logic
+    // Expect: C, C#, D, D#, E, F, F#, G, G#, A, A#, B, C
+    expect(result.spellings).toEqual([
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+      'C',
+    ])
+  })
+})
