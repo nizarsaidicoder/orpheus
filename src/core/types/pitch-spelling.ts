@@ -1,21 +1,12 @@
-export type Key =
-  | 'C'
-  | 'C#'
-  | 'Db'
-  | 'D'
-  | 'D#'
-  | 'Eb'
-  | 'E'
-  | 'F'
-  | 'F#'
-  | 'Gb'
-  | 'G'
-  | 'G#'
+import type { PitchClass } from './pitch-class'
+
+export type PitchSpelling =
+  | PitchClass
   | 'Ab'
-  | 'A'
-  | 'A#'
+  | 'Db'
+  | 'Eb'
+  | 'Gb'
   | 'Bb'
-  | 'B'
   | 'B#'
   | 'Cb'
   | 'E#'

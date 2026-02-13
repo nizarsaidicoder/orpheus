@@ -1,6 +1,6 @@
-import type { Key, Letter } from '../types'
+import type { PitchSpelling, Letter } from '../types'
 
-export const ENHARMONIC_MATRIX: Record<number, Partial<Record<Letter, Key>>> = {
+export const ENHARMONIC_MATRIX: Record<number, Partial<Record<Letter, PitchSpelling>>> = {
   0: { C: 'C', B: 'B#', D: 'Dbb' },
   1: { C: 'C#', D: 'Db', B: 'B##' },
   2: { D: 'D', C: 'C##', E: 'Ebb' },
