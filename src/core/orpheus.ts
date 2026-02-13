@@ -1,36 +1,51 @@
-import { ALPHABET, NATURAL_NOTES, NOTES, NOTES_PITCH } from './constants'
+import { ENHARMONIC_MATRIX, NOTES_PITCH } from './constants'
+import type { Key, Letter, Interval } from './types'
 
 export class Orpheus {
-  static next_enharominc_equivalence(origin: string, pitch: number) {
-    const equivalences: string[] = NOTES[pitch]!
-    const possible_letters = []
-    const startIndex = ALPHABET.indexOf(origin[0]!)
-    for (let i = 1; i <= 6; i++) {
-      possible_letters.push(ALPHABET[(startIndex + i) % 7])
+  static next_note(
+    current_pitch: number,
+    current_letter: Key,
+    interval: Interval,
+  ): {
+    pitch: number
+    letter: Key
+  } {
+    const pitch = (current_pitch + interval.pitch_step) % 12
+
+    const ALPHABET = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    const baseLetter = current_letter[0]!.toUpperCase()
+    const startIndex = ALPHABET.indexOf(baseLetter)
+
+    if (startIndex === -1) throw new Error(`Invalid base letter: ${baseLetter}`)
+
+    const targetLetter = ALPHABET[(startIndex + interval.letter_step) % 7] as Letter
+
+    const possibleSpellings = ENHARMONIC_MATRIX[pitch]
+    if (!possibleSpellings) throw new Error(`Invalid pitch: ${pitch}`)
+
+    const letter = possibleSpellings[targetLetter]
+
+    if (!letter) {
+      throw new Error(
+        `Enharmonic gap: Pitch ${pitch} cannot be represented by letter ${targetLetter}`,
+      )
     }
-    for (const letter of possible_letters) {
-      const match = equivalences.find((e) => e?.[0] === letter)
-      if (match) return match
-    }
+
+    return { pitch, letter }
   }
-
-  static ntop(note: string): number | undefined {
-    return NOTES_PITCH.get(note)
-  }
-
-  static generate_scale(key: string, scale: number[]) {
-    const pitch = this.ntop(key)
-    const numeric_scale = [pitch]
-    const alphabet = [key]
-    for (let i = 0; i < scale.length; i++) {
-      const next_note = (numeric_scale[i]! + scale[i]!) % 12
-      numeric_scale.push(next_note)
-      alphabet.push(this.next_enharominc_equivalence(alphabet[i]!, next_note)!)
+  static generate_scale(key: Key, intervals: Interval[]) {
+    const pitch = NOTES_PITCH.get(key)
+    if (!pitch && pitch !== 0) throw new Error(`Invalid key: ${key}`)
+    const pitches: number[] = [pitch]
+    const letters: Key[] = [key]
+    for (let i = 0; i < intervals.length; i++) {
+      const { pitch, letter } = this.next_note(pitches[i]!, letters[i]!, intervals[i]!)
+      pitches.push(pitch)
+      letters.push(letter)
     }
-
     return {
-      numeric_scale,
-      alphabet,
+      pitches,
+      letters,
     }
   }
 }
