@@ -1,4 +1,6 @@
-# Orpheus Public API
+# Orpheus Public API — `@orpheus/engine`
+
+**Source:** `packages/engine/src/`
 
 All exports available from `"@orpheus/engine"` (root barrel) or subpath imports.
 

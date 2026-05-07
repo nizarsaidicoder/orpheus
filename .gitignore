@@ -1,7 +1,9 @@
 node_modules/
 dist/
+packages/*/dist/
 build/
 coverage/
+packages/*/coverage/
 .cache/
 .turbo/
 .next/

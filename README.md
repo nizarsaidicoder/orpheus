@@ -36,13 +36,33 @@ const tritoneSub = tritoneSubstitution.substitute(g7);
 | [Analysis](docs/modules/analysis.md) | Chord recognition, key detection, functional analysis |
 | [Development](docs/development.md) | Setup, testing, contributing, implementation roadmap |
 
-## Installation
+## Monorepo structure
+
+```
+orpheus/
+├── packages/
+│   ├── engine/      @orpheus/engine  — core music theory (pitch, intervals, scales, chords, harmony, analysis)
+│   └── fretboard/   @orpheus/fretboard — guitar/string-instrument theory (WIP)
+├── tsconfig.base.json
+└── package.json     (private workspace root)
+```
+
+Each package is independently buildable and testable. Add a new domain by creating `packages/<name>/`.
+
+## Installation & commands
 
 ```sh
-pnpm install
-pnpm typecheck   # verify types
-pnpm test        # run test suite
-pnpm build       # compile to dist/
+npm install          # install all workspace deps (hoisted to root node_modules)
+
+# From repo root — runs across all packages:
+npm run typecheck
+npm test
+npm run build
+
+# From a specific package:
+cd packages/engine
+../../node_modules/.bin/vitest run
+../../node_modules/.bin/tsc --noEmit
 ```
 
 ## Design principles
