@@ -172,3 +172,162 @@ export const SEMITONES = {
   MINOR_THIRTEENTH:    20,
   MAJOR_THIRTEENTH:    21,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Internal lookup tables and helpers
+// ---------------------------------------------------------------------------
+
+const BASE_SEMITONES: Record<IntervalNumber, number> = {
+  1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11,
+  8: 12, 9: 14, 10: 16, 11: 17, 12: 19, 13: 21,
+};
+
+const PERFECT_NUMBERS = new Set<number>([1, 4, 5, 8, 11, 12]);
+
+const SEMITONES_TO_INTERVAL: Readonly<Record<number, [IntervalNumber, IntervalQuality]>> = {
+  0:  [1,  "perfect"],
+  1:  [2,  "minor"],
+  2:  [2,  "major"],
+  3:  [3,  "minor"],
+  4:  [3,  "major"],
+  5:  [4,  "perfect"],
+  6:  [4,  "augmented"],
+  7:  [5,  "perfect"],
+  8:  [6,  "minor"],
+  9:  [6,  "major"],
+  10: [7,  "minor"],
+  11: [7,  "major"],
+  12: [8,  "perfect"],
+  13: [9,  "minor"],
+  14: [9,  "major"],
+  15: [10, "minor"],
+  16: [10, "major"],
+  17: [11, "perfect"],
+  18: [11, "augmented"],
+  19: [12, "perfect"],
+  20: [13, "minor"],
+  21: [13, "major"],
+};
+
+const QUALITY_INVERSION: Record<IntervalQuality, IntervalQuality> = {
+  "perfect":           "perfect",
+  "major":             "minor",
+  "minor":             "major",
+  "augmented":         "diminished",
+  "diminished":        "augmented",
+  "doubly-augmented":  "doubly-diminished",
+  "doubly-diminished": "doubly-augmented",
+};
+
+function qualityOffset(quality: IntervalQuality, isPerfect: boolean): number {
+  switch (quality) {
+    case "doubly-diminished": return isPerfect ? -2 : -3;
+    case "diminished":        return isPerfect ? -1 : -2;
+    case "minor":             return -1;
+    case "perfect":           return 0;
+    case "major":             return 0;
+    case "augmented":         return 1;
+    case "doubly-augmented":  return 2;
+  }
+}
+
+function qualityFromOffset(offset: number, isPerfect: boolean): IntervalQuality {
+  if (isPerfect) {
+    if (offset <= -2) return "doubly-diminished";
+    if (offset === -1) return "diminished";
+    if (offset === 0)  return "perfect";
+    if (offset === 1)  return "augmented";
+    return "doubly-augmented";
+  } else {
+    if (offset <= -3) return "doubly-diminished";
+    if (offset === -2) return "diminished";
+    if (offset === -1) return "minor";
+    if (offset === 0)  return "major";
+    if (offset === 1)  return "augmented";
+    return "doubly-augmented";
+  }
+}
+
+function validateQualityForNumber(number: IntervalNumber, quality: IntervalQuality): void {
+  const isPerfect = PERFECT_NUMBERS.has(number);
+  if (isPerfect && (quality === "major" || quality === "minor")) {
+    throw new TypeError(
+      `quality "${quality}" is invalid for perfect-type interval number ${number}`
+    );
+  }
+  if (!isPerfect && quality === "perfect") {
+    throw new TypeError(
+      `quality "perfect" is invalid for imperfect-type interval number ${number}`
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Concrete implementations
+// ---------------------------------------------------------------------------
+
+export const intervalFactory: IntervalFactory = {
+  fromNumberAndQuality(number: IntervalNumber, quality: IntervalQuality): ValidInterval {
+    validateQualityForNumber(number, quality);
+    const isPerfect = PERFECT_NUMBERS.has(number);
+    const semitones = BASE_SEMITONES[number] + qualityOffset(quality, isPerfect);
+    const isCompound = number > 8;
+    return { number, quality, semitones, isCompound } as ValidInterval;
+  },
+
+  fromSemitones(semitones: number, preferFlat?: boolean): Interval {
+    let entry = SEMITONES_TO_INTERVAL[semitones];
+    if (entry !== undefined) {
+      if (semitones === 6 && preferFlat === true) {
+        entry = [5, "diminished"];
+      }
+      const [number, quality] = entry;
+      return { number, quality, semitones, isCompound: number > 8 };
+    }
+    const clamped = Math.max(0, Math.min(21, semitones));
+    const [number, quality] = SEMITONES_TO_INTERVAL[clamped]!;
+    return { number, quality, semitones, isCompound: number > 8 };
+  },
+};
+
+export const intervalArithmetic: IntervalArithmetic = {
+  add(a: Interval, b: Interval): Interval {
+    const number = (a.number + b.number - 1) as IntervalNumber;
+    const semitones = a.semitones + b.semitones;
+    const isPerfect = PERFECT_NUMBERS.has(number);
+    const base = BASE_SEMITONES[number] ?? semitones;
+    const quality = qualityFromOffset(semitones - base, isPerfect);
+    return { number, quality, semitones, isCompound: number > 8 };
+  },
+
+  invert(interval: Interval): Interval {
+    const number = (9 - interval.number) as IntervalNumber;
+    const quality = QUALITY_INVERSION[interval.quality];
+    const semitones = 12 - interval.semitones;
+    return { number, quality, semitones, isCompound: number > 8 };
+  },
+
+  complement(interval: Interval): Interval {
+    return intervalArithmetic.invert(interval);
+  },
+
+  simplify(interval: Interval): Interval {
+    if (interval.number <= 8) return { ...interval, isCompound: false };
+    let { number, semitones } = interval;
+    while (number > 8) {
+      number = (number - 7) as IntervalNumber;
+      semitones -= 12;
+    }
+    return { number, quality: interval.quality, semitones, isCompound: false };
+  },
+
+  compound(interval: Interval, octaves = 1): Interval {
+    const number = (interval.number + 7 * octaves) as IntervalNumber;
+    const semitones = interval.semitones + 12 * octaves;
+    return { number, quality: interval.quality, semitones, isCompound: number > 8 };
+  },
+
+  compare(a: Interval, b: Interval): number {
+    return a.semitones - b.semitones;
+  },
+};

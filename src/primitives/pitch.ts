@@ -1,4 +1,8 @@
 import type { SpelledNoteName } from "./note-name.js";
+import { NoteLetter } from "./note-name.js";
+import { ENHARMONIC_TABLE, enharmonicEquivalentOf } from "../utils/enharmonic.js";
+import { frequencyConverter } from "./frequency.js";
+import { assertMidi } from "../utils/validation.js";
 
 // ---------------------------------------------------------------------------
 // Branded numeric types — prevent accidental coercion from arbitrary numbers
@@ -98,3 +102,77 @@ export interface PitchArithmetic {
    */
   respell(pitch: Pitch): Pitch;
 }
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+const NATURAL_PC: Record<NoteLetter, number> = {
+  [NoteLetter.C]: 0,
+  [NoteLetter.D]: 2,
+  [NoteLetter.E]: 4,
+  [NoteLetter.F]: 5,
+  [NoteLetter.G]: 7,
+  [NoteLetter.A]: 9,
+  [NoteLetter.B]: 11,
+};
+
+// ---------------------------------------------------------------------------
+// Concrete implementations
+// ---------------------------------------------------------------------------
+
+export const pitchFactory: PitchFactory = {
+  fromMidi(midi: number): Pitch {
+    assertMidi(midi);
+    const pc = midi % 12;
+    const spelling = ENHARMONIC_TABLE[pc]![0]!;
+    const frequency = frequencyConverter.midiToHz(midi as MidiNumber);
+    const octave = Math.floor(midi / 12) - 1;
+    return { midi: midi as MidiNumber, spelling, frequency, pitchClass: pc as PitchClass, octave };
+  },
+
+  fromMidiWithSpelling(midi: number, spelling: SpelledNoteName): Pitch {
+    assertMidi(midi);
+    const frequency = frequencyConverter.midiToHz(midi as MidiNumber);
+    const octave = Math.floor(midi / 12) - 1;
+    const pc = midi % 12;
+    return { midi: midi as MidiNumber, spelling, frequency, pitchClass: pc as PitchClass, octave };
+  },
+
+  fromSpelling(spelling: SpelledNoteName, octave: number): Pitch {
+    const midi = (octave + 1) * 12 + NATURAL_PC[spelling.letter] + spelling.accidental;
+    assertMidi(midi);
+    const frequency = frequencyConverter.midiToHz(midi as MidiNumber);
+    const pc = midi % 12;
+    return { midi: midi as MidiNumber, spelling, frequency, pitchClass: pc as PitchClass, octave };
+  },
+
+  fromFrequency(hz: number): Pitch {
+    const midi = frequencyConverter.hzToMidi(hz as FrequencyHz);
+    return pitchFactory.fromMidi(midi);
+  },
+};
+
+export const pitchArithmetic: PitchArithmetic = {
+  transpose(pitch: Pitch, semitones: number): Pitch {
+    const newMidi = Math.max(0, Math.min(127, pitch.midi + semitones));
+    const pc = newMidi % 12;
+    const spellings = ENHARMONIC_TABLE[pc]!;
+    const useFlatSpelling = pitch.spelling.accidental < 0 && spellings.length > 1;
+    const spelling = useFlatSpelling ? spellings[1]! : spellings[0]!;
+    return pitchFactory.fromMidiWithSpelling(newMidi, spelling);
+  },
+
+  semitonesBetween(a: Pitch, b: Pitch): number {
+    return b.midi - a.midi;
+  },
+
+  isEnharmonic(a: Pitch, b: Pitch): boolean {
+    return a.midi === b.midi;
+  },
+
+  respell(pitch: Pitch): Pitch {
+    const newSpelling = enharmonicEquivalentOf(pitch.spelling);
+    return pitchFactory.fromMidiWithSpelling(pitch.midi, newSpelling);
+  },
+};
