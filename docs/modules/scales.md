@@ -153,7 +153,7 @@ interface ScaleRegistry {
 `register()` returns a new `ScaleRegistry` containing all existing patterns plus the new one. The original registry is not modified.
 
 ```typescript
-import { defaultScaleRegistry } from "orpheus";
+import { defaultScaleRegistry } from "@orpheus/engine";
 
 defaultScaleRegistry.get("major");           // MAJOR_PATTERN
 defaultScaleRegistry.get("DORIAN");          // DORIAN_PATTERN (case-insensitive)

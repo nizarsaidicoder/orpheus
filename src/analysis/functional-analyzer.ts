@@ -1,6 +1,6 @@
 import type { Chord } from "../chords/chord.js";
 import type { Key } from "../harmony/key.js";
-import { harmonizer } from "../chords/harmonizer.js";
+import type { Scale } from "../scales/scale.js";
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -30,12 +30,29 @@ const MINOR_FUNCTIONS: Readonly<Record<number, FunctionEntry>> = {
   7: { func: "ambiguous" },  // subtonic (natural minor leading tone) — not a clear dominant
 };
 
+const QUALITY_FAMILY: Readonly<Record<string, string>> = {
+  major: "major", dominant7: "major", major7: "major", major9: "major",
+  minor: "minor", minor7: "minor", "minor-major7": "minor", minor9: "minor",
+  diminished: "diminished", "half-diminished7": "diminished", diminished7: "diminished",
+  augmented: "augmented", "augmented-major7": "augmented",
+};
+
 function qualityFamily(kind: string): string {
-  if (kind === "major" || kind === "dominant7" || kind === "major7" || kind === "major9") return "major";
-  if (kind === "minor" || kind === "minor7" || kind === "minor-major7" || kind === "minor9") return "minor";
-  if (kind === "diminished" || kind === "half-diminished7" || kind === "diminished7") return "diminished";
-  if (kind === "augmented" || kind === "augmented-major7") return "augmented";
-  return kind;
+  return QUALITY_FAMILY[kind] ?? kind;
+}
+
+// Derive the triad quality family for scale degree `d` from raw semitone intervals,
+// avoiding any Chord allocation.
+function diatonicTriadFamily(scale: Scale, d: number): string {
+  const root  = scale.degree(d);
+  const third = scale.degree(d + 2);
+  const fifth = scale.degree(d + 4);
+  const t = third.midi - root.midi;
+  const f = fifth.midi - root.midi;
+  if (t === 3 && f === 6) return "diminished";
+  if (t === 3 && f === 7) return "minor";
+  if (t === 4 && f === 8) return "augmented";
+  return "major";
 }
 
 interface DiatonicMatch { scaleDegree: number; family: string }
@@ -45,8 +62,7 @@ function findDiatonicDegree(chord: Chord, key: Key): DiatonicMatch | undefined {
   const len = scale.pattern.intervals.length;
   for (let d = 1; d <= len; d++) {
     if (scale.degree(d).pitchClass === chord.root.pitchClass) {
-      const diatonicChord = harmonizer.degreeChord(scale, d, "triad");
-      return { scaleDegree: d, family: qualityFamily(diatonicChord.quality.kind) };
+      return { scaleDegree: d, family: diatonicTriadFamily(scale, d) };
     }
   }
   return undefined;

@@ -1,5 +1,5 @@
 // Orpheus — Music Theory Logic Engine
-// Public surface area. Import from "orpheus" or specific subpaths.
+// Public surface area. Import from "@orpheus/engine" or specific subpaths.
 
 export * from "./primitives/index.js";
 export * from "./scales/index.js";

@@ -125,17 +125,20 @@ class ConcreteScale extends Scale {
   readonly root: Pitch;
   readonly pattern: ScalePattern;
   readonly pitches: ReadonlyArray<Pitch>;
+  private readonly _pcSet: ReadonlySet<number>;
 
   constructor(root: Pitch, pattern: ScalePattern) {
     super();
     this.root = root;
     this.pattern = pattern;
     this.pitches = pattern.intervals.map(offset => pitchArithmetic.transpose(root, offset));
+    this._pcSet = new Set(this.pitches.map(p => p.pitchClass));
   }
 
   degree(n: number): Pitch {
     if (n < 1) throw new RangeError(`Scale degree must be ≥ 1, got ${n}`);
     const len = this.pattern.intervals.length;
+    if (n <= len) return this.pitches[n - 1]!;
     const idx = (n - 1) % len;
     const octaveOffset = Math.floor((n - 1) / len);
     const semitones = (this.pattern.intervals[idx] ?? 0) + 12 * octaveOffset;
@@ -178,7 +181,7 @@ class ConcreteScale extends Scale {
   }
 
   contains(pitch: Pitch): boolean {
-    return this.pitches.some(p => p.pitchClass === pitch.pitchClass);
+    return this._pcSet.has(pitch.pitchClass);
   }
 }
 

@@ -12,7 +12,7 @@ Orpheus models the mathematical foundations of Western tonal music: pitch, inter
 
 ```typescript
 // (Requires concrete implementations — see docs/development.md)
-import { pitchFactory, chordFactory, harmonizer } from "orpheus";
+import { pitchFactory, chordFactory, harmonizer } from "@orpheus/engine";
 
 const cMajorScale = scaleFactory.build(MAJOR_PATTERN, pitchFactory.fromMidi(60));
 const diatonic7ths = harmonizer.harmonize(cMajorScale, "seventh");

@@ -124,3 +124,33 @@ describe("Harmonizer.harmonize() — scaleDegree field", () => {
     degrees.forEach((d, i) => expect(d.scaleDegree).toBe(i + 1));
   });
 });
+
+describe("Harmonizer memoization", () => {
+  it("repeated harmonize() calls return same array reference", () => {
+    const a = harmonizer.harmonize(cMajor, "triad");
+    const b = harmonizer.harmonize(cMajor, "triad");
+    expect(a).toBe(b);
+  });
+
+  it("different extensions cached independently", () => {
+    const triads   = harmonizer.harmonize(cMajor, "triad");
+    const sevenths = harmonizer.harmonize(cMajor, "seventh");
+    expect(triads).not.toBe(sevenths);
+    expect(harmonizer.harmonize(cMajor, "seventh")).toBe(sevenths);
+  });
+
+  it("different scale instances produce independent caches", () => {
+    const dMajor = scaleFactory.build(MAJOR_PATTERN, pitchFactory.fromMidi(62));
+    const cResult = harmonizer.harmonize(cMajor, "triad");
+    const dResult = harmonizer.harmonize(dMajor, "triad");
+    expect(cResult).not.toBe(dResult);
+    expect(cResult[0]!.chord.root.midi).toBe(60);
+    expect(dResult[0]!.chord.root.midi).toBe(62);
+  });
+
+  it("degreeChord() result matches harmonize() chord at same degree", () => {
+    const d5 = harmonizer.degreeChord(cMajor, 5, "triad");
+    const all = harmonizer.harmonize(cMajor, "triad");
+    expect(d5).toBe(all[4]!.chord);
+  });
+});

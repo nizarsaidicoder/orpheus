@@ -113,10 +113,10 @@ export const chordAnalyzer: ChordAnalyzer = {
         }
 
         const invPos = getInversionPos(rootPC, template, bassPC);
-        if (invPos !== "root" && invPos !== "third") {
-          try { chord = chordFactory.invert(chord, invPos); } catch { /* keep root pos */ }
-        } else if (invPos === "third" && template.kind === "seventh") {
-          try { chord = chordFactory.invert(chord, "third"); } catch { /* keep root pos */ }
+        if ((invPos === "first" || invPos === "second") && chord.pitches.length > (invPos === "first" ? 1 : 2)) {
+          chord = chordFactory.invert(chord, invPos);
+        } else if (invPos === "third" && template.kind === "seventh" && chord.pitches.length > 3) {
+          chord = chordFactory.invert(chord, "third");
         }
 
         const pct = Math.round(score * 100);

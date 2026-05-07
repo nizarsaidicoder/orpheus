@@ -116,11 +116,18 @@ function buildDegreeChord(scale: Scale, degree: number, stackCount: number): Cho
 // Concrete implementation
 // ---------------------------------------------------------------------------
 
+const _cache = new WeakMap<Scale, Map<HarmonizationExtension, ReadonlyArray<HarmonizedDegree>>>();
+
 export const harmonizer: Harmonizer = {
   harmonize(scale: Scale, extension: HarmonizationExtension = "triad"): ReadonlyArray<HarmonizedDegree> {
+    let byExt = _cache.get(scale);
+    if (byExt === undefined) { byExt = new Map(); _cache.set(scale, byExt); }
+    const cached = byExt.get(extension);
+    if (cached !== undefined) return cached;
+
     const len = scale.pattern.intervals.length;
     const stackCount = STACK_COUNT[extension];
-    return Array.from({ length: len }, (_, i) => {
+    const result = Array.from({ length: len }, (_, i) => {
       const degree = i + 1;
       const chord = buildDegreeChord(scale, degree, stackCount);
       return {
@@ -129,6 +136,8 @@ export const harmonizer: Harmonizer = {
         chord,
       };
     });
+    byExt.set(extension, result);
+    return result;
   },
 
   degreeChord(scale: Scale, degree: number, extension: HarmonizationExtension = "triad"): Chord {
@@ -136,7 +145,7 @@ export const harmonizer: Harmonizer = {
     if (degree < 1 || degree > len) {
       throw new RangeError(`Degree must be between 1 and ${len}, got ${degree}`);
     }
-    return buildDegreeChord(scale, degree, STACK_COUNT[extension]);
+    return harmonizer.harmonize(scale, extension)[degree - 1]!.chord;
   },
 };
 

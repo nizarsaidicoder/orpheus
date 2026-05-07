@@ -210,6 +210,6 @@ interface FrequencyConverter {
 The concrete `frequencyConverter` object is exported directly — no instantiation needed:
 
 ```typescript
-import { frequencyConverter } from "orpheus";
+import { frequencyConverter } from "@orpheus/engine";
 frequencyConverter.midiToHz(60 as MidiNumber); // → ~261.63 Hz
 ```

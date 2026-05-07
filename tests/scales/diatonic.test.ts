@@ -128,6 +128,35 @@ describe("Scale.contains()", () => {
   });
 });
 
+describe("Scale.degree() — fast path vs wrapping", () => {
+  it("in-range degree returns same pitch object as pitches array", () => {
+    for (let d = 1; d <= 7; d++) {
+      expect(cMajor.degree(d)).toBe(cMajor.pitches[d - 1]);
+    }
+  });
+
+  it("degree(8) wraps correctly (one octave above root)", () => {
+    expect(cMajor.degree(8).midi).toBe(72);
+  });
+
+  it("degree(9) wraps correctly (one octave above degree 2)", () => {
+    expect(cMajor.degree(9).midi).toBe(74);
+  });
+});
+
+describe("Scale.contains() — O(1) Set lookup", () => {
+  it("all diatonic pitches are contained", () => {
+    for (const p of cMajor.pitches) {
+      expect(cMajor.contains(p)).toBe(true);
+    }
+  });
+
+  it("non-diatonic pitch class not contained", () => {
+    const fSharp = pitchFactory.fromMidi(66);
+    expect(cMajor.contains(fSharp)).toBe(false);
+  });
+});
+
 describe("Scale.transpose()", () => {
   it("transposing C major by 2 → D major", () => {
     const dMajor = cMajor.transpose(2);

@@ -1,5 +1,5 @@
 {
-  "name": "orpheus",
+  "name": "@orpheus/engine",
   "version": "0.1.0",
   "description": "Pure-logic music theory engine — no DOM, no Audio API, no UI",
   "type": "module",
