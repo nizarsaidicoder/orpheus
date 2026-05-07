@@ -50,18 +50,18 @@ The current codebase contains **interfaces, abstract classes, and pure-data impl
 - [x] `utils/validation.ts` — guard functions (implemented)
 - [x] `utils/enharmonic.ts` — lookup table + helpers (implemented)
 - [x] `primitives/frequency.ts` — `frequencyConverter` (implemented)
-- [ ] `primitives/pitch.ts` — implement `PitchFactory` and `PitchArithmetic`
-- [ ] `primitives/interval.ts` — implement `IntervalFactory` and `IntervalArithmetic`
+- [x] `primitives/pitch.ts` — implement `PitchFactory` and `PitchArithmetic`
+- [x] `primitives/interval.ts` — implement `IntervalFactory` and `IntervalArithmetic`
 
 ### Phase 2 — Scales
 
 - [x] All scale patterns in `diatonic.ts`, `modes.ts`, `symmetric.ts`, `exotic.ts` — pure data, done
 - [x] `scale-registry.ts` — `createScaleRegistry` + `defaultScaleRegistry` (implemented)
-- [ ] `scale.ts` — implement the `Scale` abstract class with a concrete subclass (e.g. `DiatonicScale`)
+- [x] `scale.ts` — implement the `Scale` abstract class with a concrete subclass (e.g. `DiatonicScale`)
 
 ### Phase 3 — Chords
 
-- [ ] `chord-factory.ts` — implement `ChordFactory` (depends on pitch + interval impls)
+- [x] `chord-factory.ts` — implement `ChordFactory` (depends on pitch + interval impls)
 - [ ] `inversion.ts` — implement `InversionAnalyzer`
 - [ ] `voicing.ts` — implement `VoicingGenerator`
 - [ ] `harmonizer.ts` — implement `Harmonizer`

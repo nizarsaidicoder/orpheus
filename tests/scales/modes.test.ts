@@ -3,6 +3,10 @@ import {
   IONIAN_PATTERN, DORIAN_PATTERN, PHRYGIAN_PATTERN, LYDIAN_PATTERN,
   MIXOLYDIAN_PATTERN, AEOLIAN_PATTERN, LOCRIAN_PATTERN, ALL_CHURCH_MODES,
 } from "../../src/scales/modes.js";
+import { scaleFactory } from "../../src/scales/scale.js";
+import { MAJOR_PATTERN } from "../../src/scales/diatonic.js";
+import { pitchFactory } from "../../src/primitives/pitch.js";
+import { NoteLetter } from "../../src/primitives/note-name.js";
 
 describe("Church mode patterns", () => {
   it("all 7 modes are exported and present in ALL_CHURCH_MODES", () => {
@@ -43,8 +47,32 @@ describe("Church mode patterns", () => {
 });
 
 describe("Scale.mode()", () => {
-  it("C major.mode(2) is a Dorian scale rooted on D", () => {});
-  it("C major.mode(3) is a Phrygian scale rooted on E", () => {});
-  it("C major.mode(6) is an Aeolian scale rooted on A", () => {});
-  it("throws RangeError for mode(0) or mode(> pattern length)", () => {});
+  const C4 = pitchFactory.fromMidi(60);
+  const cMajor = scaleFactory.build(MAJOR_PATTERN, C4);
+
+  it("C major.mode(2) is a Dorian scale rooted on D", () => {
+    const dorian = cMajor.mode(2);
+    expect(dorian.root.midi).toBe(62);
+    expect(dorian.root.spelling.letter).toBe(NoteLetter.D);
+    expect(dorian.pattern.intervals).toEqual([0, 2, 3, 5, 7, 9, 10]);
+  });
+
+  it("C major.mode(3) is a Phrygian scale rooted on E", () => {
+    const phrygian = cMajor.mode(3);
+    expect(phrygian.root.midi).toBe(64);
+    expect(phrygian.root.spelling.letter).toBe(NoteLetter.E);
+    expect(phrygian.pattern.intervals).toEqual([0, 1, 3, 5, 7, 8, 10]);
+  });
+
+  it("C major.mode(6) is an Aeolian scale rooted on A", () => {
+    const aeolian = cMajor.mode(6);
+    expect(aeolian.root.midi).toBe(69);
+    expect(aeolian.root.spelling.letter).toBe(NoteLetter.A);
+    expect(aeolian.pattern.intervals).toEqual([0, 2, 3, 5, 7, 8, 10]);
+  });
+
+  it("throws RangeError for mode(0) or mode(> pattern length)", () => {
+    expect(() => cMajor.mode(0)).toThrow(RangeError);
+    expect(() => cMajor.mode(8)).toThrow(RangeError);
+  });
 });

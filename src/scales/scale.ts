@@ -1,5 +1,7 @@
 import type { Interval } from "../primitives/interval.js";
 import type { Pitch } from "../primitives/pitch.js";
+import { intervalFactory } from "../primitives/interval.js";
+import { pitchArithmetic } from "../primitives/pitch.js";
 
 // ---------------------------------------------------------------------------
 // Scale pattern types (the "recipe" — key-agnostic)
@@ -114,3 +116,74 @@ export abstract class Scale {
 export interface ScaleFactory {
   build(pattern: ScalePattern, root: Pitch): Scale;
 }
+
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+class ConcreteScale extends Scale {
+  readonly root: Pitch;
+  readonly pattern: ScalePattern;
+  readonly pitches: ReadonlyArray<Pitch>;
+
+  constructor(root: Pitch, pattern: ScalePattern) {
+    super();
+    this.root = root;
+    this.pattern = pattern;
+    this.pitches = pattern.intervals.map(offset => pitchArithmetic.transpose(root, offset));
+  }
+
+  degree(n: number): Pitch {
+    if (n < 1) throw new RangeError(`Scale degree must be ≥ 1, got ${n}`);
+    const len = this.pattern.intervals.length;
+    const idx = (n - 1) % len;
+    const octaveOffset = Math.floor((n - 1) / len);
+    const semitones = (this.pattern.intervals[idx] ?? 0) + 12 * octaveOffset;
+    return pitchArithmetic.transpose(this.root, semitones);
+  }
+
+  intervalToDegree(n: number): Interval {
+    if (n < 1) throw new RangeError(`Scale degree must be ≥ 1, got ${n}`);
+    const len = this.pattern.intervals.length;
+    const idx = (n - 1) % len;
+    const octaveOffset = Math.floor((n - 1) / len);
+    const semitones = (this.pattern.intervals[idx] ?? 0) + 12 * octaveOffset;
+    return intervalFactory.fromSemitones(semitones);
+  }
+
+  transpose(semitones: number): Scale {
+    return new ConcreteScale(pitchArithmetic.transpose(this.root, semitones), this.pattern);
+  }
+
+  mode(degree: number): Scale {
+    const len = this.pattern.intervals.length;
+    if (degree < 1 || degree > len) {
+      throw new RangeError(`Mode degree must be between 1 and ${len}, got ${degree}`);
+    }
+    const newRoot = this.degree(degree);
+    const base = this.pattern.intervals[degree - 1] ?? 0;
+    const rotated = [
+      ...this.pattern.intervals.slice(degree - 1),
+      ...this.pattern.intervals.slice(0, degree - 1),
+    ];
+    const normalized = rotated.map(v => ((v - base) % 12 + 12) % 12);
+    const modeName =
+      this.pattern.modes?.[degree - 1] ?? `mode-${degree}-of-${this.pattern.name}`;
+    const newPattern: ScalePattern = {
+      name: modeName,
+      category: "mode",
+      intervals: normalized,
+    };
+    return new ConcreteScale(newRoot, newPattern);
+  }
+
+  contains(pitch: Pitch): boolean {
+    return this.pitches.some(p => p.pitchClass === pitch.pitchClass);
+  }
+}
+
+export const scaleFactory: ScaleFactory = {
+  build(pattern: ScalePattern, root: Pitch): Scale {
+    return new ConcreteScale(root, pattern);
+  },
+};

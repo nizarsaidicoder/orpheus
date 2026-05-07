@@ -53,6 +53,34 @@ export type ChordQuality =
   | { readonly kind: "dominant13" }
   | { readonly kind: "major13" }
   | { readonly kind: "minor13" }
+  // --------------- Add-tone chords (no 7th) ---------------
+  | { readonly kind: "add9" }
+  | { readonly kind: "add11" }
+  | { readonly kind: "add13" }                   // = add6 (close voicing)
+  | { readonly kind: "minor-add9" }
+  | { readonly kind: "minor-add11" }
+  | { readonly kind: "minor-add13" }             // = min6 (close voicing)
+  // --------------- Suspended + 7th ---------------
+  | { readonly kind: "dominant7sus4" }
+  | { readonly kind: "dominant7sus2" }
+  | { readonly kind: "major7sus4" }
+  | { readonly kind: "major7sus2" }
+  | { readonly kind: "major9sus4" }
+  // --------------- No-third ---------------
+  | { readonly kind: "no-third" }
+  // --------------- Augmented extended ---------------
+  | { readonly kind: "augmented-major9" }
+  | { readonly kind: "augmented-major11" }
+  // --------------- Minor-major extended ---------------
+  | { readonly kind: "minor-major9" }
+  | { readonly kind: "minor-major11" }
+  | { readonly kind: "minor-major13" }
+  // --------------- Half-diminished extended ---------------
+  | { readonly kind: "half-diminished9" }
+  | { readonly kind: "half-diminished11" }
+  // --------------- Diminished add-tone ---------------
+  | { readonly kind: "diminished-add11" }
+  | { readonly kind: "diminished-add13" }        // = dim6 (close voicing)
   // --------------- Altered dominant ---------------
   | { readonly kind: "altered"; readonly alterations: ReadonlyArray<ChordAlteration> };
 
