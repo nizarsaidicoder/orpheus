@@ -1,6 +1,40 @@
 import type { Pitch } from "../primitives/pitch.js";
 import type { Chord } from "../chords/chord.js";
 import type { Key } from "./key.js";
+import { chordFactory } from "../chords/chord-factory.js";
+import { pitchFactory } from "../primitives/pitch.js";
+
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+export const tritoneSubstitution: TritoneSubstitution = {
+  substitute(chord: Chord): Chord {
+    if (chord.quality.kind !== "dominant7") {
+      throw new TypeError(`tritone substitute requires dominant7, got "${chord.quality.kind}"`);
+    }
+    const subRoot = pitchFactory.fromMidi(chord.root.midi + 6);
+    return chordFactory.seventh(subRoot, "dominant7");
+  },
+
+  forKey(key: Key): TritoneSubPair {
+    // V7: degree 5 of the natural scale
+    const v7Root = key.naturalScale.degree(5);
+    const original = chordFactory.seventh(v7Root, "dominant7");
+    const substitute = tritoneSubstitution.substitute(original);
+    // Guide tones: 3rd and 7th of original
+    // 3rd = 4 semitones above root; 7th = 10 semitones above root
+    const guideTone1 = pitchFactory.fromMidi(v7Root.midi + 4) as Pitch;
+    const guideTone2 = pitchFactory.fromMidi(v7Root.midi + 10) as Pitch;
+    return { original, substitute, sharedGuideTones: [guideTone1, guideTone2] };
+  },
+
+  isTritoneSub(chord: Chord, key: Key): boolean {
+    if (chord.quality.kind !== "dominant7") return false;
+    const pair = tritoneSubstitution.forKey(key);
+    return chord.root.pitchClass === pair.substitute.root.pitchClass;
+  },
+};
 
 /**
  * A tritone substitution pair.

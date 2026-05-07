@@ -1,4 +1,5 @@
 import type { Key } from "./key.js";
+import { keyFactory } from "./key.js";
 
 /**
  * A single node in the circle of fifths.
@@ -32,6 +33,103 @@ export interface CircleNode {
    */
   readonly fifthsFromC: number;
 }
+
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+// 12 major keys in clockwise order starting from C (signature: 0,1,2,...,6,-5,-4,-3,-2,-1)
+const MAJOR_SIGS  = [0, 1, 2, 3, 4, 5, 6, -5, -4, -3, -2, -1] as const;
+// 12 minor keys in the same clockwise order (same circle positions)
+const MINOR_SIGS  = [0, 1, 2, 3, 4, 5, 6, -5, -4, -3, -2, -1] as const;
+
+class ConcreteCircleNode implements CircleNode {
+  readonly key:                Key;
+  readonly relativeKey:        Key;
+  readonly fifthsFromC:        number;
+  declare dominantNeighbor:    CircleNode;
+  declare subdominantNeighbor: CircleNode;
+
+  constructor(key: Key, fifthsFromC: number) {
+    this.key = key;
+    this.relativeKey = key.relative;
+    this.fifthsFromC = fifthsFromC;
+  }
+}
+
+// fifthsFromC: position 0-11 → [-1,-2,-3,-4,-5,6,5,4,3,2,1,0] shifted
+// Positions 0-6 = 0,1,2,3,4,5,6; positions 7-11 = -5,-4,-3,-2,-1
+function posToFifths(pos: number): number {
+  return pos <= 6 ? pos : pos - 12;
+}
+
+// Build major and minor circles
+const majorNodes: ConcreteCircleNode[] = MAJOR_SIGS.map((sig, pos) =>
+  new ConcreteCircleNode(keyFactory.major(sig), posToFifths(pos))
+);
+const minorNodes: ConcreteCircleNode[] = MINOR_SIGS.map((sig, pos) =>
+  new ConcreteCircleNode(keyFactory.minor(sig), posToFifths(pos))
+);
+
+// Wire dominantNeighbor (clockwise = +1) and subdominantNeighbor (counter-clockwise = -1)
+for (let i = 0; i < 12; i++) {
+  majorNodes[i]!.dominantNeighbor    = majorNodes[(i + 1) % 12]!;
+  majorNodes[i]!.subdominantNeighbor = majorNodes[(i + 11) % 12]!;
+  minorNodes[i]!.dominantNeighbor    = minorNodes[(i + 1) % 12]!;
+  minorNodes[i]!.subdominantNeighbor = minorNodes[(i + 11) % 12]!;
+}
+
+// Map from Key instance → CircleNode
+const keyToNode = new Map<Key, ConcreteCircleNode>();
+for (const n of majorNodes) keyToNode.set(n.key, n);
+for (const n of minorNodes) keyToNode.set(n.key, n);
+
+// Also map enharmonic equivalents to the same node
+// (F# and Gb major are both valid lookups for node at position 6)
+for (const n of majorNodes) keyToNode.set(n.key.enharmonicEquivalent, n);
+for (const n of minorNodes) keyToNode.set(n.key.enharmonicEquivalent, n);
+
+export const circleOfFifths: CircleOfFifths = {
+  nodeFor(key: Key): CircleNode {
+    const node = keyToNode.get(key) ?? keyToNode.get(key.enharmonicEquivalent);
+    if (!node) throw new Error(`Key not found in circle: ${key.tonic.spelling.letter} ${key.modality}`);
+    return node;
+  },
+
+  get majorKeys() { return majorNodes as ReadonlyArray<CircleNode>; },
+  get minorKeys() { return minorNodes as ReadonlyArray<CircleNode>; },
+
+  pathBetween(from: Key, to: Key): ReadonlyArray<CircleNode> {
+    const fromNode = this.nodeFor(from);
+    const toNode   = this.nodeFor(to);
+    const nodes    = from.modality === "major" ? majorNodes : minorNodes;
+    const fi = nodes.indexOf(fromNode as ConcreteCircleNode);
+    const ti = nodes.indexOf(toNode   as ConcreteCircleNode);
+    if (fi < 0 || ti < 0) return [fromNode, toNode];
+    const cwDist  = ((ti - fi) + 12) % 12;
+    const ccwDist = ((fi - ti) + 12) % 12;
+    const path: ConcreteCircleNode[] = [];
+    if (cwDist <= ccwDist) {
+      for (let step = 0; step <= cwDist; step++) path.push(nodes[(fi + step) % 12]!);
+    } else {
+      for (let step = 0; step <= ccwDist; step++) path.push(nodes[(fi - step + 12) % 12]!);
+    }
+    return path;
+  },
+
+  distance(a: Key, to: Key): number {
+    const nodeA = this.nodeFor(a);
+    const nodeB = this.nodeFor(to);
+    const nodes = a.modality === "major" ? majorNodes : minorNodes;
+    const ai = nodes.indexOf(nodeA as ConcreteCircleNode);
+    const bi = nodes.indexOf(nodeB as ConcreteCircleNode);
+    if (ai < 0 || bi < 0) return 0;
+    const d = Math.abs(ai - bi);
+    return Math.min(d, 12 - d);
+  },
+};
+
+// ---------------------------------------------------------------------------
 
 /**
  * The full circle of fifths as an immutable navigable data structure.

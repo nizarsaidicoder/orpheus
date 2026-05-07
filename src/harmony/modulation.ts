@@ -1,6 +1,116 @@
 import type { Chord } from "../chords/chord.js";
 import type { Key } from "./key.js";
 import type { CircleNode } from "./circle-of-fifths.js";
+import { circleOfFifths } from "./circle-of-fifths.js";
+import { harmonizer } from "../chords/harmonizer.js";
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+function getDiatonicTriads(key: Key): ReadonlyArray<Chord> {
+  return harmonizer.harmonize(key.naturalScale, "triad").map(d => d.chord);
+}
+
+function keyLabel(key: Key): string {
+  const letter = String(key.tonic.spelling.letter);
+  const acc = key.tonic.spelling.accidental;
+  const accStr = acc === 1 ? "#" : acc === -1 ? "b" : "";
+  return `${letter}${accStr} ${key.modality}`;
+}
+
+function sameKey(a: Key, b: Key): boolean {
+  return a.tonic.pitchClass === b.tonic.pitchClass && a.modality === b.modality;
+}
+
+function makePivotStep(targetKey: Key, pivot: Chord, fromKey: Key): ModulationStep {
+  return {
+    targetKey,
+    mechanism: "pivot-chord",
+    pivotChord: pivot,
+    description: `Pivot: chord shared by ${keyLabel(fromKey)} and ${keyLabel(targetKey)}`,
+  };
+}
+
+function makePivotStepNoChord(targetKey: Key, fromKey: Key): ModulationStep {
+  return {
+    targetKey,
+    mechanism: "pivot-chord",
+    description: `Pivot modulation from ${keyLabel(fromKey)} to ${keyLabel(targetKey)}`,
+  };
+}
+
+function makeDirectStep(targetKey: Key): ModulationStep {
+  return {
+    targetKey,
+    mechanism: "direct",
+    description: `Direct modulation to ${keyLabel(targetKey)}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+export const modulationFinder: ModulationFinder = {
+  pivotChords(from: Key, to: Key): ReadonlyArray<Chord> {
+    const fromTriads = getDiatonicTriads(from);
+    const toTriads = getDiatonicTriads(to);
+    const pivots: Chord[] = [];
+    for (const fc of fromTriads) {
+      for (const tc of toTriads) {
+        if (fc.root.pitchClass === tc.root.pitchClass && fc.quality.kind === tc.quality.kind) {
+          pivots.push(fc);
+          break;
+        }
+      }
+    }
+    return pivots;
+  },
+
+  findPath(from: Key, to: Key): ModulationPath {
+    if (sameKey(from, to)) {
+      return { from, to, steps: [], cost: 0 };
+    }
+    const dist = circleOfFifths.distance(from, to);
+    const pivots = modulationFinder.pivotChords(from, to);
+    if (pivots.length > 0) {
+      const pivot = pivots[0];
+      const step = pivot !== undefined
+        ? makePivotStep(to, pivot, from)
+        : makePivotStepNoChord(to, from);
+      return { from, to, steps: [step], cost: dist };
+    }
+    const step = makeDirectStep(to);
+    return { from, to, steps: [step], cost: dist * 2 + 1 };
+  },
+
+  findAllPaths(from: Key, to: Key, maxSteps: number = 3): ReadonlyArray<ModulationPath> {
+    const paths: ModulationPath[] = [modulationFinder.findPath(from, to)];
+
+    if (maxSteps >= 2) {
+      const fromNode = circleOfFifths.nodeFor(from);
+      const intermediates: Key[] = [
+        fromNode.dominantNeighbor.key,
+        fromNode.subdominantNeighbor.key,
+        from.relative,
+        from.parallel,
+      ];
+      for (const mid of intermediates) {
+        if (sameKey(mid, from) || sameKey(mid, to)) continue;
+        const leg1 = modulationFinder.findPath(from, mid);
+        const leg2 = modulationFinder.findPath(mid, to);
+        const combined = [...leg1.steps, ...leg2.steps];
+        if (combined.length <= maxSteps) {
+          paths.push({ from, to, steps: combined, cost: leg1.cost + leg2.cost });
+        }
+      }
+    }
+
+    paths.sort((a, b) => a.cost - b.cost);
+    return paths;
+  },
+};
 
 /**
  * The mechanism by which a single modulation step is achieved.

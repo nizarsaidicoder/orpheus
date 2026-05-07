@@ -1,6 +1,66 @@
 import type { Chord } from "../chords/chord.js";
 import type { Key } from "./key.js";
 import type { RomanDegree } from "./roman-numeral.js";
+import { chordFactory } from "../chords/chord-factory.js";
+import { pitchFactory } from "../primitives/pitch.js";
+import { harmonizer } from "../chords/harmonizer.js";
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+// Valid tonicization targets (not I = tonic, not VII° = non-tonal)
+const VALID_TARGETS: ReadonlyArray<RomanDegree> = ["II", "III", "IV", "V", "VI"];
+
+const DEGREE_INDEX: Readonly<Record<RomanDegree, number>> = {
+  I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7,
+};
+
+// Display labels: IV and V uppercase, ii iii vi lowercase
+const DEGREE_LABEL: Readonly<Record<RomanDegree, string>> = {
+  I: "I", II: "ii", III: "iii", IV: "IV", V: "V", VI: "vi", VII: "vii",
+};
+
+function buildForDegree(target: RomanDegree, key: Key): SecondaryDominant {
+  const degNum = DEGREE_INDEX[target];
+  const tonicizationRoot = key.naturalScale.degree(degNum);
+  // V7 root is a perfect fifth (7 semitones) above the tonicized degree
+  const v7Root = pitchFactory.fromMidi(tonicizationRoot.midi + 7);
+  const chord = chordFactory.seventh(v7Root, "dominant7");
+  const resolvesTo = harmonizer.degreeChord(key.naturalScale, degNum, "triad");
+  const label = `V7/${DEGREE_LABEL[target]}`;
+  return { chord, tonicizes: target, resolvesTo, label };
+}
+
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+export const secondaryDominantAnalyzer: SecondaryDominantAnalyzer = {
+  allIn(key: Key): ReadonlyArray<SecondaryDominant> {
+    return VALID_TARGETS.map(t => buildForDegree(t, key));
+  },
+
+  of(degree: RomanDegree, key: Key): SecondaryDominant | undefined {
+    if (!(VALID_TARGETS as ReadonlyArray<string>).includes(degree)) return undefined;
+    return buildForDegree(degree, key);
+  },
+
+  identify(chord: Chord, key: Key): SecondaryDominant | undefined {
+    if (chord.quality.kind !== "dominant7") return undefined;
+    const rootPC = chord.root.pitchClass;
+    // Secondary V7 resolves to the degree whose root is a perfect fifth below (7 semitones down)
+    const resolutionPC = ((rootPC - 7) % 12 + 12) % 12;
+    for (const target of VALID_TARGETS) {
+      const degNum = DEGREE_INDEX[target];
+      const targetPitch = key.naturalScale.degree(degNum);
+      if (targetPitch.pitchClass === resolutionPC) {
+        return buildForDegree(target, key);
+      }
+    }
+    return undefined;
+  },
+};
 
 /**
  * A secondary dominant relationship: a chord that temporarily tonicizes
