@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { chordAnalyzer } from "../../src/analysis/chord-analyzer.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { chordAnalyzer } from "../../src/analysis/chord-analyzer.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60);
 const D4 = pitchFactory.fromMidi(62);

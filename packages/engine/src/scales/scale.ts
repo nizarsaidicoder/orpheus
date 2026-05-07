@@ -1,7 +1,7 @@
-import type { Interval } from "../primitives/interval.js";
-import type { Pitch } from "../primitives/pitch.js";
-import { intervalFactory } from "../primitives/interval.js";
-import { pitchArithmetic } from "../primitives/pitch.js";
+import type { Interval } from "../primitives/interval.ts";
+import type { Pitch } from "../primitives/pitch.ts";
+import { intervalFactory } from "../primitives/interval.ts";
+import { pitchArithmetic } from "../primitives/pitch.ts";
 
 // ---------------------------------------------------------------------------
 // Scale pattern types (the "recipe" — key-agnostic)

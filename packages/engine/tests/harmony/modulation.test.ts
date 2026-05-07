@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { modulationFinder } from "../../src/harmony/modulation.js";
-import { keyFactory } from "../../src/harmony/key.js";
+import { modulationFinder } from "../../src/harmony/modulation.ts";
+import { keyFactory } from "../../src/harmony/key.ts";
 
 const CMajor  = keyFactory.major(0);
 const GMajor  = keyFactory.major(1);

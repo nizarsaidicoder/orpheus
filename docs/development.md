@@ -2,137 +2,172 @@
 
 ## Setup
 
-Requires: Node.js ≥ 18, pnpm ≥ 9.
+Requires: Node.js ≥ 18, npm ≥ 10.
 
 ```sh
 cd C:\src\projects\orpheus
-pnpm install
-pnpm typecheck   # verify all types compile
-pnpm test        # run test suite
-pnpm build       # compile to dist/
+npm install
+npm run typecheck   # verify all types compile
+npm test            # run test suite
+npm run build       # compile to dist/
 ```
 
 ## Scripts
 
+Run from the repo root (applies to all packages via workspaces) or from inside a specific package.
+
 | Script | Description |
 |---|---|
-| `pnpm build` | Compile `src/` → `dist/` via `tsc -p tsconfig.build.json` |
-| `pnpm test` | Run all tests once with Vitest |
-| `pnpm test:watch` | Watch mode — reruns on file change |
-| `pnpm test:coverage` | Run with V8 coverage; enforces 100% thresholds |
-| `pnpm typecheck` | `tsc --noEmit` — type-checks without emitting |
-| `pnpm lint` | ESLint over `src/` and `tests/` |
+| `npm run build` | Compile `src/` → `dist/` via `tsc -p tsconfig.build.json` |
+| `npm test` | Run all tests once with Vitest |
+| `npm run test:coverage` | Run with V8 coverage |
+| `npm run typecheck` | `tsc --noEmit` — type-checks without emitting |
+| `npm run lint` | ESLint over `src/` and `tests/` |
+
+**Per-package (from inside `packages/engine/` or `packages/fretboard/`):**
+```sh
+npx vitest run                          # tests only
+npx vitest run tests/fretboard.test.ts  # single file
+npx tsc --noEmit                        # typecheck only
+```
 
 ## Project structure
 
 ```
-src/
-  primitives/     Pitch, Interval, NoteName, Frequency — no internal deps
-  scales/         ScalePattern, Scale, registry
-  chords/         Chord, ChordFactory, Voicing, Harmonizer
-  harmony/        Key, RomanNumeral, CircleOfFifths, Modulation
-  analysis/       ChordAnalyzer, KeyDetector, FunctionalAnalyzer
-  utils/          Math, Validation, EnharmonicTable
-  index.ts        Public barrel
-
-tests/            Mirrors src/ structure, one *.test.ts per source file
-docs/             This documentation
-dist/             Compiled output (git-ignored)
+orpheus/
+├── tsconfig.base.json       Shared TS compiler options (strict, NodeNext, exactOptionalPropertyTypes)
+├── package.json             Workspace root (private, devDeps hoisted here)
+├── API.md                   Full public API reference
+│
+├── packages/
+│   ├── engine/              @orpheus/engine v0.1.0
+│   │   ├── src/
+│   │   │   ├── primitives/  Pitch, Interval, NoteName, Frequency
+│   │   │   ├── scales/      ScalePattern, Scale, registry, all patterns
+│   │   │   ├── chords/      Chord, ChordFactory, Voicing, Harmonizer
+│   │   │   ├── harmony/     Key, RomanNumeral, CircleOfFifths, Modulation
+│   │   │   ├── analysis/    ChordAnalyzer, KeyDetector, FunctionalAnalyzer
+│   │   │   ├── utils/       Math, Validation, EnharmonicTable
+│   │   │   └── index.ts     Public barrel
+│   │   └── tests/           Mirrors src/ — 372 tests, 100% coverage
+│   │
+│   └── fretboard/           @orpheus/fretboard v0.1.0
+│       ├── src/
+│       │   ├── types/       GuitarString, Tuning, FretPosition, ChordVoicing, Fingering
+│       │   ├── tunings/     Standard tuning constants + tuningFactory/registry
+│       │   ├── fretboard/   Fretboard class + fretboardFactory
+│       │   ├── scale-map/   ScaleMap class + scaleMapFactory
+│       │   ├── chord-shapes/ shapeFinder + scoreVoicing
+│       │   ├── fingering/   fingeringAnalyzer + handOptimizer
+│       │   ├── caged/       cagedSystem (CAGED positions + shape detection)
+│       │   ├── analysis/    positionAnalyzer (positions → chord/scale)
+│       │   └── index.ts     Public barrel
+│       └── tests/           47 tests
+│
+└── docs/
+    ├── architecture.md
+    ├── development.md       (this file)
+    ├── type-system.md
+    └── modules/
+        ├── primitives.md
+        ├── scales.md
+        ├── chords.md
+        ├── harmony.md
+        ├── analysis.md
+        └── fretboard.md
 ```
 
 ## Implementation status
 
-The current codebase contains **interfaces, abstract classes, and pure-data implementations**. Concrete method bodies are not yet written for most classes. The implementation order below respects the dependency layers.
+All phases complete.
 
-### Phase 1 — Utils and primitives (no dependencies)
+### `@orpheus/engine`
 
-- [x] `utils/math.ts` — `pitchMath` object (implemented)
-- [x] `utils/validation.ts` — guard functions (implemented)
-- [x] `utils/enharmonic.ts` — lookup table + helpers (implemented)
-- [x] `primitives/frequency.ts` — `frequencyConverter` (implemented)
-- [x] `primitives/pitch.ts` — implement `PitchFactory` and `PitchArithmetic`
-- [x] `primitives/interval.ts` — implement `IntervalFactory` and `IntervalArithmetic`
+| Layer | Status |
+|---|---|
+| `utils/` — math, validation, enharmonic table | ✅ complete |
+| `primitives/` — pitch, interval, frequency, note-name | ✅ complete |
+| `scales/` — all patterns + registry + Scale class | ✅ complete |
+| `chords/` — factory, inversion, voicing, harmonizer | ✅ complete |
+| `harmony/` — key, roman numeral, circle of fifths, modulation | ✅ complete |
+| `analysis/` — chord analyzer, key detector, functional analyzer | ✅ complete |
 
-### Phase 2 — Scales
+### `@orpheus/fretboard`
 
-- [x] All scale patterns in `diatonic.ts`, `modes.ts`, `symmetric.ts`, `exotic.ts` — pure data, done
-- [x] `scale-registry.ts` — `createScaleRegistry` + `defaultScaleRegistry` (implemented)
-- [x] `scale.ts` — implement the `Scale` abstract class with a concrete subclass (e.g. `DiatonicScale`)
-
-### Phase 3 — Chords
-
-- [x] `chord-factory.ts` — implement `ChordFactory` (depends on pitch + interval impls)
-- [x] `inversion.ts` — implement `InversionAnalyzer`
-- [x] `voicing.ts` — implement `VoicingGenerator`
-- [x] `harmonizer.ts` — implement `Harmonizer`
-
-### Phase 4 — Harmony
-
-- [x] `key.ts` — implement `KeyFactory` (pre-compute all 30 standard keys)
-- [x] `roman-numeral.ts` — implement `RomanNumeralAnalyzer` (parse + render + analyze + realize)
-- [x] `circle-of-fifths.ts` — implement the linked-ring structure
-- [x] `secondary-dominant.ts` — implement `SecondaryDominantAnalyzer`
-- [x] `tritone-sub.ts` — implement `TritoneSubstitution`
-- [x] `modulation.ts` — implement `ModulationFinder` (graph search)
-
-### Phase 5 — Analysis
-
-- [x] `chord-analyzer.ts` — implement `ChordAnalyzer` (rotation + scoring algorithm)
-- [x] `key-detector.ts` — implement `KeyDetector` (Krumhansl-Schmuckler correlation)
-- [x] `functional-analyzer.ts` — implement `FunctionalAnalyzer` (rule-based classification)
+| Module | Status |
+|---|---|
+| `types/` — tuning, fret-position, fingering types | ✅ complete |
+| `tunings/` — 7 standard tunings + factory/registry | ✅ complete |
+| `fretboard/` — Fretboard class | ✅ complete |
+| `scale-map/` — ScaleMap + CAGED position windows | ✅ complete |
+| `chord-shapes/` — shape finder + ergonomic scorer | ✅ complete |
+| `fingering/` — fingering analyzer + hand path optimizer | ✅ complete |
+| `caged/` — CAGED shape detection + key positions | ✅ complete |
+| `analysis/` — position → chord/scale identification | ✅ complete |
 
 ## Testing
 
-Tests live in `tests/` and mirror the `src/` structure. Each test file has spec-level stubs (`it(description, () => {})`) covering the critical assertions from the test coverage map in [Architecture](architecture.md).
+Tests live in `tests/` inside each package and mirror the `src/` structure.
 
 **Running a single test file:**
 ```sh
-pnpm vitest run tests/primitives/pitch.test.ts
+npx vitest run tests/fretboard.test.ts
 ```
 
 **Running a specific test by name:**
 ```sh
-pnpm vitest run --reporter=verbose -t "A4"
+npx vitest run --reporter=verbose -t "pitchAt"
 ```
 
 **Coverage report:**
 ```sh
-pnpm test:coverage
-# opens coverage/index.html after run
+npm run test:coverage
 ```
 
-Coverage thresholds are configured in `vitest.config.ts` at 100% for all metrics. Barrel files (`index.ts`) are excluded.
+Engine coverage thresholds are configured at 100% in `packages/engine/vitest.config.ts`. Barrel files (`index.ts`) are excluded from coverage.
 
 ## TypeScript configuration notes
 
-The `tsconfig.json` uses several strict options worth knowing:
+Shared options live in `tsconfig.base.json` at the repo root. Each package extends it.
 
-**`noUncheckedIndexedAccess: true`** — array subscripts return `T | undefined`. Always check bounds or use optional chaining:
+**`noUncheckedIndexedAccess: true`** — array subscripts return `T | undefined`. Always check bounds:
 ```typescript
 const first = pitches[0]; // type: Pitch | undefined
 if (first !== undefined) { /* use first */ }
-// or
-const first = pitches.at(0); // still Pitch | undefined, but idiomatic
 ```
 
-**`exactOptionalPropertyTypes: true`** — optional properties cannot be explicitly set to `undefined`. Use `delete` or simply omit the property:
+**`exactOptionalPropertyTypes: true`** — optional properties cannot be explicitly set to `undefined`. Omit the property instead:
 ```typescript
 // Error: Type 'undefined' is not assignable to 'Pitch'
 const chord: Chord = { ..., bassNote: undefined };
 
 // Correct: omit the property
-const chord: Chord = { ... }; // bassNote absent
+const chord: Chord = { ... };
 ```
 
-**`isolatedModules: true`** — every file must be a module (`import`/`export`). Use `import type` for type-only imports to avoid issues with `isolatedModules`.
+**`isolatedModules: true`** — use `import type` for type-only imports.
 
 ## Module imports in source files
 
-All internal imports use `.js` extensions (NodeNext module resolution requires this even for `.ts` source files):
+All internal imports use `.js` extensions (NodeNext module resolution):
 
 ```typescript
 import type { Pitch } from "../primitives/pitch.js";  // correct
 import type { Pitch } from "../primitives/pitch";      // incorrect for NodeNext
 ```
 
-This is a TypeScript + NodeNext requirement: the `.js` extension in the import maps to the `.ts` source during compilation and the compiled `.js` file at runtime.
+Cross-package imports use the package name:
+```typescript
+import { pitchFactory, scaleFactory } from "@orpheus/engine";
+```
+
+## Adding a new package
+
+1. Create `packages/<name>/` with `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `src/index.ts`
+2. Set `"extends": "../../tsconfig.base.json"` in both tsconfig files
+3. Add `"@orpheus/engine": "*"` (or other workspace deps) to `dependencies`
+4. Configure vitest alias so `@orpheus/engine` resolves to engine source during development:
+   ```typescript
+   resolve: { alias: { "@orpheus/engine": resolve(__dirname, "../engine/src/index.ts") } }
+   ```
+5. Run `npm install` from repo root to wire the workspace symlink

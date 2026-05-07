@@ -1,4 +1,4 @@
-import type { FretPosition, ChordVoicing } from "./fret-position.js";
+import type { FretPosition, ChordVoicing } from "./fret-position.ts";
 
 export type Finger = 0 | 1 | 2 | 3 | 4;
 

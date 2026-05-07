@@ -1,26 +1,23 @@
-// @orpheus/fretboard
-// Guitar and string-instrument theory — fret positions, tunings, chord shapes.
+// @orpheus/fretboard — Guitar and string-instrument theory
 
-// Types
-export type { GuitarString, Tuning } from "./types/tuning.js";
-export type { FretPosition, ChordVoicing, ScalePosition } from "./types/fret-position.js";
-export type { Fingering, FingerAssignment, BarreSegment, FretboardConstraints, Finger } from "./types/fingering.js";
-export type { CAGEDShape, CAGEDPosition } from "./caged/caged-system.js";
+// Types (re-exported from folder barrel)
+export type { GuitarString, Tuning } from "./types/index.ts";
+export type { FretPosition, ChordVoicing, ScalePosition } from "./types/index.ts";
+export type { Fingering, FingerAssignment, BarreSegment, FretboardConstraints, Finger } from "./types/index.ts";
+export type { CAGEDShape, CAGEDPosition } from "./caged/index.ts";
 
 // Tunings
-export { STANDARD_TUNING, DROP_D, OPEN_G, OPEN_E, DADGAD, HALF_STEP_DOWN, WHOLE_STEP_DOWN } from "./tunings/standard-tunings.js";
-export { tuningFactory, tuningRegistry } from "./tunings/tuning-factory.js";
+export { STANDARD_TUNING, DROP_D, OPEN_G, OPEN_E, DADGAD, HALF_STEP_DOWN, WHOLE_STEP_DOWN } from "./tunings/index.ts";
+export { tuningFactory, tuningRegistry } from "./tunings/index.ts";
 
 // Core
-export { Fretboard } from "./fretboard/fretboard.js";
-export { fretboardFactory } from "./fretboard/fretboard-factory.js";
-export { ScaleMap } from "./scale-map/scale-map.js";
-export { scaleMapFactory } from "./scale-map/scale-map-factory.js";
+export { Fretboard, fretboardFactory } from "./fretboard/index.ts";
+export { ScaleMap, scaleMapFactory } from "./scale-map/index.ts";
 
 // Chord shapes & fingering
-export { shapeFinder } from "./chord-shapes/shape-finder.js";
-export { fingeringAnalyzer, handOptimizer } from "./fingering/index.js";
+export { shapeFinder } from "./chord-shapes/index.ts";
+export { fingeringAnalyzer, handOptimizer } from "./fingering/index.ts";
 
 // CAGED + analysis
-export { cagedSystem } from "./caged/caged-system.js";
-export { positionAnalyzer } from "./analysis/position-analyzer.js";
+export { cagedSystem } from "./caged/index.ts";
+export { positionAnalyzer } from "./analysis/index.ts";

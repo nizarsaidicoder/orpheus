@@ -1,2 +1,2 @@
-export { fingeringAnalyzer } from "./fingering-analyzer.js";
-export { handOptimizer } from "./hand-optimizer.js";
+export { fingeringAnalyzer } from "./fingering-analyzer.ts";
+export { handOptimizer } from "./hand-optimizer.ts";

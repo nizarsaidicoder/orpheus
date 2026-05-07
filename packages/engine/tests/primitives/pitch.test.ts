@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { pitchFactory, pitchArithmetic } from "../../src/primitives/pitch.js";
-import { NoteLetter, Accidental } from "../../src/primitives/note-name.js";
+import { pitchFactory, pitchArithmetic } from "../../src/primitives/pitch.ts";
+import { NoteLetter, Accidental } from "../../src/primitives/note-name.ts";
 
 describe("PitchFactory", () => {
   describe("fromMidi", () => {

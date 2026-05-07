@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { tritoneSubstitution } from "../../src/harmony/tritone-sub.js";
-import { keyFactory } from "../../src/harmony/key.js";
-import { chordFactory } from "../../src/chords/chord-factory.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { tritoneSubstitution } from "../../src/harmony/tritone-sub.ts";
+import { keyFactory } from "../../src/harmony/key.ts";
+import { chordFactory } from "../../src/chords/chord-factory.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const CMajor = keyFactory.major(0);
 

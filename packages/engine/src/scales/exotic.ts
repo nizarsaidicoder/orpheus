@@ -1,4 +1,4 @@
-import type { ScalePattern } from "./scale.js";
+import type { ScalePattern } from "./scale.ts";
 
 /** Major pentatonic — 5 pitches, no semitones. */
 export const MAJOR_PENTATONIC_PATTERN: ScalePattern = Object.freeze({

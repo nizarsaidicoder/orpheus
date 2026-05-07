@@ -1,4 +1,4 @@
-import type { FrequencyHz, MidiNumber } from "./pitch.js";
+import type { FrequencyHz, MidiNumber } from "./pitch.ts";
 
 /** Standard concert A reference: A4 = MIDI 69 = 440 Hz. */
 export const A4_HZ   = 440 as FrequencyHz;

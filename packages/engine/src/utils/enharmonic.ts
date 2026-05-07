@@ -1,5 +1,5 @@
-import { Accidental, NoteLetter } from "../primitives/note-name.js";
-import type { SpelledNoteName } from "../primitives/note-name.js";
+import { Accidental, NoteLetter } from "../primitives/note-name.ts";
+import type { SpelledNoteName } from "../primitives/note-name.ts";
 
 /**
  * Maps each pitch class (0–11) to its preferred spellings.

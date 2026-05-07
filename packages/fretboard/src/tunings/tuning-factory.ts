@@ -1,6 +1,6 @@
 import { pitchFactory } from "@orpheus/engine";
 import type { SpelledNoteName } from "@orpheus/engine";
-import type { Tuning, GuitarString } from "../types/tuning.js";
+import type { Tuning, GuitarString } from "../types/tuning.ts";
 
 // midis[0] = lowest string (e.g. low E for guitar)
 // string numbers: 1 = highest pitch, N = lowest pitch

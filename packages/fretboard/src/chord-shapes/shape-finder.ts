@@ -1,9 +1,9 @@
 import type { Chord } from "@orpheus/engine";
-import type { Fretboard } from "../fretboard/fretboard.js";
-import type { FretPosition, ChordVoicing } from "../types/fret-position.js";
-import type { FretboardConstraints, Fingering } from "../types/fingering.js";
-import { fingeringAnalyzer } from "../fingering/fingering-analyzer.js";
-import { scoreVoicing } from "./shape-scorer.js";
+import type { Fretboard } from "../fretboard/fretboard.ts";
+import type { FretPosition, ChordVoicing } from "../types/fret-position.ts";
+import type { FretboardConstraints, Fingering } from "../types/fingering.ts";
+import { fingeringAnalyzer } from "../fingering/fingering-analyzer.ts";
+import { scoreVoicing } from "./shape-scorer.ts";
 
 function activeSpan(voicing: ChordVoicing): number {
   const active = voicing.slots

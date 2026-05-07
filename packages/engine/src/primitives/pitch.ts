@@ -1,8 +1,8 @@
-import type { SpelledNoteName } from "./note-name.js";
-import { NoteLetter } from "./note-name.js";
-import { ENHARMONIC_TABLE, enharmonicEquivalentOf } from "../utils/enharmonic.js";
-import { frequencyConverter } from "./frequency.js";
-import { assertMidi } from "../utils/validation.js";
+import type { SpelledNoteName } from "./note-name.ts";
+import { NoteLetter } from "./note-name.ts";
+import { ENHARMONIC_TABLE, enharmonicEquivalentOf } from "../utils/enharmonic.ts";
+import { frequencyConverter } from "./frequency.ts";
+import { assertMidi } from "../utils/validation.ts";
 
 // ---------------------------------------------------------------------------
 // Branded numeric types — prevent accidental coercion from arbitrary numbers

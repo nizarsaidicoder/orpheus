@@ -1,4 +1,4 @@
-import type { MidiNumber } from "../primitives/pitch.js";
+import type { MidiNumber } from "../primitives/pitch.ts";
 
 /** Returns true if `n` is an integer in [0, 127]. */
 export function isMidiNumber(n: unknown): n is MidiNumber {

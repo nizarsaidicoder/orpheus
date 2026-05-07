@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pitchMath } from "../../src/utils/math.js";
+import { pitchMath } from "../../src/utils/math.ts";
 
 describe("pitchMath.mod()", () => {
   it("mod(7, 12) = 7", () => { expect(pitchMath.mod(7, 12)).toBe(7); });

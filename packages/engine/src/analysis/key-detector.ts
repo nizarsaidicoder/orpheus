@@ -1,6 +1,6 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { Key } from "../harmony/key.js";
-import { keyFactory } from "../harmony/key.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { Key } from "../harmony/key.ts";
+import { keyFactory } from "../harmony/key.ts";
 
 // ---------------------------------------------------------------------------
 // Krumhansl-Schmuckler key profiles (C-rooted)

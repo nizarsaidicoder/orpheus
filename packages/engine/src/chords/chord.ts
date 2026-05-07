@@ -1,5 +1,5 @@
-import type { Interval } from "../primitives/interval.js";
-import type { Pitch } from "../primitives/pitch.js";
+import type { Interval } from "../primitives/interval.ts";
+import type { Pitch } from "../primitives/pitch.ts";
 
 // ---------------------------------------------------------------------------
 // Chord quality — discriminated union on `kind`

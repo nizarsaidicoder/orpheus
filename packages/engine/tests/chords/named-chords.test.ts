@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { chordFactory } from "../../src/chords/chord-factory.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { chordFactory } from "../../src/chords/chord-factory.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60); // C4 = midi 60
 const G4 = pitchFactory.fromMidi(67); // G4 = midi 67

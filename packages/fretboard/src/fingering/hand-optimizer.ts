@@ -1,7 +1,7 @@
 import type { Chord } from "@orpheus/engine";
-import type { Fretboard } from "../fretboard/fretboard.js";
-import type { FretboardConstraints, Fingering } from "../types/fingering.js";
-import { shapeFinder } from "../chord-shapes/shape-finder.js";
+import type { Fretboard } from "../fretboard/fretboard.ts";
+import type { FretboardConstraints, Fingering } from "../types/fingering.ts";
+import { shapeFinder } from "../chord-shapes/shape-finder.ts";
 
 function minActiveFret(fingering: Fingering): number {
   const active = fingering.voicing.slots

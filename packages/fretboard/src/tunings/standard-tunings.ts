@@ -1,4 +1,4 @@
-import { tuningFactory, tuningRegistry } from "./tuning-factory.js";
+import { tuningFactory, tuningRegistry } from "./tuning-factory.ts";
 
 // Standard 6-string guitar tunings. midis listed low→high (string N→string 1).
 

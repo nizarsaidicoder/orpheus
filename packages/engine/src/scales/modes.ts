@@ -1,4 +1,4 @@
-import type { ScalePattern } from "./scale.js";
+import type { ScalePattern } from "./scale.ts";
 
 /**
  * The seven church modes as standalone ScalePatterns.

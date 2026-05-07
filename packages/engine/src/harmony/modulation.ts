@@ -1,8 +1,8 @@
-import type { Chord } from "../chords/chord.js";
-import type { Key } from "./key.js";
-import type { CircleNode } from "./circle-of-fifths.js";
-import { circleOfFifths } from "./circle-of-fifths.js";
-import { harmonizer } from "../chords/harmonizer.js";
+import type { Chord } from "../chords/chord.ts";
+import type { Key } from "./key.ts";
+import type { CircleNode } from "./circle-of-fifths.ts";
+import { circleOfFifths } from "./circle-of-fifths.ts";
+import { harmonizer } from "../chords/harmonizer.ts";
 
 // ---------------------------------------------------------------------------
 // Internal helpers

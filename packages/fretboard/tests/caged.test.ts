@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { pitchFactory, keyFactory } from "@orpheus/engine";
-import { fretboardFactory } from "../src/fretboard/fretboard-factory.js";
-import { cagedSystem } from "../src/caged/caged-system.js";
-import { STANDARD_TUNING } from "../src/tunings/standard-tunings.js";
+import { fretboardFactory } from "../src/fretboard/fretboard-factory.ts";
+import { cagedSystem } from "../src/caged/caged-system.ts";
+import { STANDARD_TUNING } from "../src/tunings/standard-tunings.ts";
 
 const fb = fretboardFactory.build(STANDARD_TUNING);
 

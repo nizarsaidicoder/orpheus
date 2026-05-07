@@ -1,6 +1,6 @@
 import { chordAnalyzer, defaultScaleRegistry, scaleFactory } from "@orpheus/engine";
 import type { Chord, Scale, Key } from "@orpheus/engine";
-import type { FretPosition } from "../types/fret-position.js";
+import type { FretPosition } from "../types/fret-position.ts";
 
 export const positionAnalyzer = {
   identifyChord(positions: ReadonlyArray<FretPosition>): Chord | null {

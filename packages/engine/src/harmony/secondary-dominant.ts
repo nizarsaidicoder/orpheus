@@ -1,9 +1,9 @@
-import type { Chord } from "../chords/chord.js";
-import type { Key } from "./key.js";
-import type { RomanDegree } from "./roman-numeral.js";
-import { chordFactory } from "../chords/chord-factory.js";
-import { pitchFactory } from "../primitives/pitch.js";
-import { harmonizer } from "../chords/harmonizer.js";
+import type { Chord } from "../chords/chord.ts";
+import type { Key } from "./key.ts";
+import type { RomanDegree } from "./roman-numeral.ts";
+import { chordFactory } from "../chords/chord-factory.ts";
+import { pitchFactory } from "../primitives/pitch.ts";
+import { harmonizer } from "../chords/harmonizer.ts";
 
 // ---------------------------------------------------------------------------
 // Internal helpers

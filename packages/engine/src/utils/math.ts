@@ -1,4 +1,4 @@
-import type { PitchClass } from "../primitives/pitch.js";
+import type { PitchClass } from "../primitives/pitch.ts";
 
 /** Pure modular arithmetic helpers for pitch-class calculations. */
 export interface PitchMath {

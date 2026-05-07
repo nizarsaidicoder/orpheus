@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { ENHARMONIC_TABLE, enharmonicEquivalentOf, spellingToPitchClass } from "../../src/utils/enharmonic.js";
-import { NoteLetter, Accidental } from "../../src/primitives/note-name.js";
+import { ENHARMONIC_TABLE, enharmonicEquivalentOf, spellingToPitchClass } from "../../src/utils/enharmonic.ts";
+import { NoteLetter, Accidental } from "../../src/primitives/note-name.ts";
 
 describe("ENHARMONIC_TABLE", () => {
   it("has entries for all 12 pitch classes (0–11)", () => {

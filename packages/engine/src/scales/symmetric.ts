@@ -1,4 +1,4 @@
-import type { ScalePattern } from "./scale.js";
+import type { ScalePattern } from "./scale.ts";
 
 /**
  * Symmetric scales — defined by repeating interval cells.

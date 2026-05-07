@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   WHOLE_TONE_PATTERN, DIMINISHED_HW_PATTERN, DIMINISHED_WH_PATTERN, AUGMENTED_PATTERN,
-} from "../../src/scales/symmetric.js";
+} from "../../src/scales/symmetric.ts";
 
 describe("Whole-tone scale", () => {
   it("has exactly 6 pitch classes", () => {

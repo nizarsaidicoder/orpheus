@@ -1,5 +1,5 @@
-import type { Key } from "./key.js";
-import { keyFactory } from "./key.js";
+import type { Key } from "./key.ts";
+import { keyFactory } from "./key.ts";
 
 /**
  * A single node in the circle of fifths.

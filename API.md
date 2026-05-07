@@ -1,4 +1,13 @@
-# Orpheus Public API — `@orpheus/engine`
+# Orpheus Public API
+
+This document covers the public API of both packages.
+
+- [`@orpheus/engine`](#orpheusengine) — core music theory
+- [`@orpheus/fretboard`](#orpheusfretboard) — guitar fretboard theory
+
+---
+
+# `@orpheus/engine`
 
 **Source:** `packages/engine/src/`
 
@@ -484,3 +493,150 @@ Classical tonal function analysis.
 | `TonalFunction` | `"tonic" "predominant" "dominant" "ambiguous"` |
 | `RomanDegree` | `"I" "II" "III" "IV" "V" "VI" "VII"` |
 | `ModulationMechanism` | `"pivot-chord" "direct" "secondary-dominant" "chromatic-mediant" "enharmonic" "common-tone"` |
+
+---
+
+---
+
+# `@orpheus/fretboard`
+
+**Source:** `packages/fretboard/src/`
+
+All exports available from `"@orpheus/fretboard"`.
+
+---
+
+## Tunings
+
+### Standard tuning constants
+
+| Export | Open strings (low→high) |
+|---|---|
+| `STANDARD_TUNING` | E A D G B e |
+| `DROP_D` | D A D G B e |
+| `OPEN_G` | D G D G B D |
+| `OPEN_E` | E B E G# B E |
+| `DADGAD` | D A D G A D |
+| `HALF_STEP_DOWN` | Eb Ab Db Gb Bb eb |
+| `WHOLE_STEP_DOWN` | D G C F A d |
+
+### `tuningFactory`
+
+| Method | Signature | Description |
+|---|---|---|
+| `fromMidiArray` | `(name, midis[]) → Tuning` | `midis[0]` = lowest string. String numbers assigned high-to-low. |
+| `fromSpellings` | `(name, spellings[], octaves[]) → Tuning` | Build from `SpelledNoteName` + octave per string. |
+
+### `tuningRegistry`
+
+| Method | Signature | Description |
+|---|---|---|
+| `register` | `(tuning) → void` | Register a named tuning. |
+| `get` | `(name) → Tuning \| undefined` | Case-insensitive lookup. |
+| `all` | `() → Tuning[]` | All registered tunings. |
+
+---
+
+## `fretboardFactory`
+
+```typescript
+fretboardFactory.build(tuning: Tuning, fretCount = 24): Fretboard
+```
+
+### `Fretboard` methods
+
+| Method | Signature | Description |
+|---|---|---|
+| `pitchAt` | `(string, fret) → Pitch` | O(1) — `pitchArithmetic.transpose(openPitch, fret)`. |
+| `positionsForString` | `(n) → FretPosition[]` | All frets 0…fretCount on string `n`. |
+| `positionsForPitch` | `(pitch) → FretPosition[]` | All positions with same MIDI number. |
+| `positionsForPitchClass` | `(pc) → FretPosition[]` | All positions with same pitch class. |
+| `positionsInRange` | `(from, to) → FretPosition[]` | All positions in fret window. |
+| `stringCount` | `number` | — |
+
+---
+
+## `scaleMapFactory`
+
+```typescript
+scaleMapFactory.build(scale: Scale, fretboard: Fretboard): ScaleMap
+```
+
+### `ScaleMap` methods
+
+| Method | Signature | Description |
+|---|---|---|
+| `positions` | `FretPosition[]` | All fretboard positions in scale (uses `scale.contains()` — O(1) per position). |
+| `positionsForString` | `(n) → FretPosition[]` | Scale positions on one string. |
+| `positionsInFretRange` | `(from, to) → FretPosition[]` | Scale positions in fret window. |
+| `positionsForDegree` | `(n) → FretPosition[]` | Positions matching pitch class of scale degree `n` (1-based). |
+| `scalePositions` | `(fretSpan = 4) → ScalePosition[]` | Sliding 4-fret boxes; each tagged with CAGED shape when detectable. |
+
+---
+
+## `shapeFinder`
+
+| Method | Signature | Description |
+|---|---|---|
+| `find` | `(chord, fretboard, constraints?) → ChordVoicing[]` | All valid voicings sorted by ergonomic score ascending. |
+| `findWithFingering` | `(chord, fretboard, constraints?) → Fingering[]` | Same, with finger assignments. Voicings requiring > 4 fingers are skipped. |
+
+**Ergonomic score factors:** fret span × 10 · string skips × 8 · barre +15 · open string −8 · root-not-in-bass +12.
+
+---
+
+## `fingeringAnalyzer`
+
+```typescript
+fingeringAnalyzer.assign(voicing: ChordVoicing): Fingering
+```
+
+Assigns finger 0 to open strings, detects barres (≥2 notes at same fret on contiguous strings → finger 1), then assigns fingers 2→4 greedily. Throws `RangeError` if > 4 simultaneous fingers required.
+
+---
+
+## `handOptimizer`
+
+| Method | Signature | Description |
+|---|---|---|
+| `best` | `(chord, fretboard, constraints?) → Fingering` | Lowest-difficulty fingering. |
+| `optimalPath` | `(chords[], fretboard, constraints?) → Fingering[]` | One fingering per chord; greedy nearest-neighbor minimizes `|prevMinFret − nextMinFret|`. |
+
+---
+
+## `cagedSystem`
+
+| Method | Signature | Description |
+|---|---|---|
+| `shapeOf` | `(voicing, root) → CAGEDShape \| null` | Match voicing intervals against C/A/G/E/D templates. |
+| `shapesForKey` | `(key, fretboard) → CAGEDPosition[]` | 5 CAGED positions with scale notes for a key. |
+| `nextShape` | `(shape) → CAGEDShape` | Next shape up the neck (C→A→G→E→D→C). |
+| `prevShape` | `(shape) → CAGEDShape` | Previous shape. |
+
+---
+
+## `positionAnalyzer`
+
+| Method | Signature | Description |
+|---|---|---|
+| `identifyChord` | `(positions[]) → Chord \| null` | Extracts pitches → `chordAnalyzer.bestFit()`. |
+| `identifyScale` | `(positions[], hint?: Key) → Scale \| null` | Matches pitch-class set against `defaultScaleRegistry`. Requires ≥ 60% coverage. |
+
+---
+
+## Fretboard type reference
+
+| Type | Description |
+|---|---|
+| `GuitarString` | `{ number: number; openPitch: Pitch }` |
+| `Tuning` | `{ name: string; strings: GuitarString[] }` (ordered high→low) |
+| `FretPosition` | `{ string, fret, pitch }` |
+| `ChordVoicing` | `{ slots: (FretPosition \| null)[]; barre?: BarreSegment }` |
+| `ScalePosition` | `{ positions, fretRange, cagedShape? }` |
+| `Fingering` | `{ voicing, assignments, difficulty }` |
+| `FingerAssignment` | `{ position, finger: Finger, isBarre }` |
+| `BarreSegment` | `{ fret, fromString, toString, finger: 1 }` |
+| `FretboardConstraints` | `{ maxFretSpan?, allowOpenStrings?, requireRootInBass?, minStrings?, maxStrings?, fromFret?, toFret? }` |
+| `CAGEDShape` | `"C" \| "A" \| "G" \| "E" \| "D"` |
+| `CAGEDPosition` | `{ shape, rootFret, positions }` |
+| `Finger` | `0 \| 1 \| 2 \| 3 \| 4` |

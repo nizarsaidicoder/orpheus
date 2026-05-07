@@ -1,5 +1,5 @@
 import type { Pitch } from "@orpheus/engine";
-import type { BarreSegment } from "./fingering.js";
+import type { BarreSegment } from "./fingering.ts";
 
 export interface FretPosition {
   readonly string: number;

@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { pitchFactory, chordFactory } from "@orpheus/engine";
-import { fretboardFactory } from "../src/fretboard/fretboard-factory.js";
-import { shapeFinder } from "../src/chord-shapes/shape-finder.js";
-import { STANDARD_TUNING } from "../src/tunings/standard-tunings.js";
+import { fretboardFactory } from "../src/fretboard/fretboard-factory.ts";
+import { shapeFinder } from "../src/chord-shapes/shape-finder.ts";
+import { STANDARD_TUNING } from "../src/tunings/standard-tunings.ts";
 
 const fb = fretboardFactory.build(STANDARD_TUNING);
 const C4 = pitchFactory.fromMidi(60);

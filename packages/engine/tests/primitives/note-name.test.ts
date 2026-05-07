@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { NoteLetter, Accidental, spelledNoteNameToString, spelledNoteNamesEqual } from "../../src/primitives/note-name.js";
+import { NoteLetter, Accidental, spelledNoteNameToString, spelledNoteNamesEqual } from "../../src/primitives/note-name.ts";
 
 describe("NoteLetter enum", () => {
   it("C = 0, D = 1, …, B = 6", () => {

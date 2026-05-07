@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { fretboardFactory } from "../src/fretboard/fretboard-factory.js";
-import { STANDARD_TUNING, DROP_D } from "../src/tunings/standard-tunings.js";
-import { tuningFactory } from "../src/tunings/tuning-factory.js";
+import { fretboardFactory } from "../src/fretboard/fretboard-factory.ts";
+import { STANDARD_TUNING, DROP_D } from "../src/tunings/standard-tunings.ts";
+import { tuningFactory } from "../src/tunings/tuning-factory.ts";
 
 describe("Fretboard", () => {
   const fb = fretboardFactory.build(STANDARD_TUNING);

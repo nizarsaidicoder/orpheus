@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { circleOfFifths } from "../../src/harmony/circle-of-fifths.js";
-import { keyFactory } from "../../src/harmony/key.js";
+import { circleOfFifths } from "../../src/harmony/circle-of-fifths.ts";
+import { keyFactory } from "../../src/harmony/key.ts";
 
 const CMajor = keyFactory.major(0);
 const GMajor = keyFactory.major(1);

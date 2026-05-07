@@ -1,6 +1,6 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { Chord } from "./chord.js";
-import { pitchArithmetic } from "../primitives/pitch.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { Chord } from "./chord.ts";
+import { pitchArithmetic } from "../primitives/pitch.ts";
 
 /**
  * Voicing style for spread-chord generation.

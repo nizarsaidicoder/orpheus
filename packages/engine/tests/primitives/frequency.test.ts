@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { frequencyConverter, A4_HZ, A4_MIDI } from "../../src/primitives/frequency.js";
+import { frequencyConverter, A4_HZ, A4_MIDI } from "../../src/primitives/frequency.ts";
 
 describe("FrequencyConverter", () => {
   describe("midiToHz", () => {

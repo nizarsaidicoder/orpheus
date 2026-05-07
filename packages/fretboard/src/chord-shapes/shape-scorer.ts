@@ -1,4 +1,4 @@
-import type { ChordVoicing } from "../types/fret-position.js";
+import type { ChordVoicing } from "../types/fret-position.ts";
 
 export function scoreVoicing(voicing: ChordVoicing): number {
   const played = voicing.slots.filter((s): s is NonNullable<typeof s> => s !== null);

@@ -1,8 +1,20 @@
 # Architecture
 
-## Module layers
+## Packages
 
-Orpheus is organized into six layers. Dependencies flow strictly downward — no layer imports from a layer above it, and no circular dependencies exist anywhere in the graph.
+The monorepo contains two packages with a strict one-way dependency:
+
+```
+@orpheus/fretboard  →  @orpheus/engine
+```
+
+`@orpheus/fretboard` imports types and factory functions from `@orpheus/engine` but never the reverse.
+
+---
+
+## `@orpheus/engine` — module layers
+
+Organized into six layers. Dependencies flow strictly downward — no layer imports from a layer above it, and no circular dependencies exist anywhere in the graph.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -130,10 +142,82 @@ analysis/key-detector     ← primitives/pitch, harmony/key
 analysis/functional-anal  ← chords/chord, harmony/key
 ```
 
+---
+
+## `@orpheus/fretboard` — module layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         analysis/                           │
+│           positionAnalyzer (positions → chord/scale)        │
+├─────────────────────────────────────────────────────────────┤
+│                      caged/ + fingering/                    │
+│  cagedSystem · fingeringAnalyzer · handOptimizer            │
+├─────────────────────────────────────────────────────────────┤
+│                       chord-shapes/                         │
+│            shapeFinder · scoreVoicing                       │
+├─────────────────────────────────────────────────────────────┤
+│                        scale-map/                           │
+│                  ScaleMap · scaleMapFactory                  │
+├─────────────────────────────────────────────────────────────┤
+│                         fretboard/                          │
+│               Fretboard · fretboardFactory                  │
+├─────────────────────────────────────────────────────────────┤
+│                      tunings/ + types/                      │
+│  Tuning · GuitarString · FretPosition · ChordVoicing        │
+│           Fingering · FretboardConstraints                  │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ depends on
+┌─────────────────────────────────────────────────────────────┐
+│                      @orpheus/engine                        │
+│     Pitch · Interval · Scale · Chord · Key · factories      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### `types/`
+Pure type definitions — no runtime code, no imports from other fretboard modules.
+
+| File | Exports |
+|---|---|
+| `tuning.ts` | `GuitarString`, `Tuning` |
+| `fret-position.ts` | `FretPosition`, `ChordVoicing`, `ScalePosition` |
+| `fingering.ts` | `Fingering`, `FingerAssignment`, `BarreSegment`, `FretboardConstraints`, `Finger` |
+
+### `tunings/`
+Named tuning constants and registry.
+
+| File | Exports |
+|---|---|
+| `tuning-factory.ts` | `tuningFactory`, `tuningRegistry` |
+| `standard-tunings.ts` | `STANDARD_TUNING`, `DROP_D`, `OPEN_G`, `OPEN_E`, `DADGAD`, `HALF_STEP_DOWN`, `WHOLE_STEP_DOWN` |
+
+### `fretboard/`
+Core fretboard: maps `(string, fret)` → `Pitch` via `pitchArithmetic.transpose`.
+
+### `scale-map/`
+Maps a `Scale` instance onto all fretboard positions. `scalePositions()` groups positions into sliding 4-fret windows tagged with CAGED shapes.
+
+### `chord-shapes/`
+Finds all valid voicings for a `Chord` by enumerating per-string candidates and filtering by span, coverage, and constraint options. Scores voicings by ergonomic penalty (fret span, string skips, barre, open string bonus).
+
+### `fingering/`
+`fingeringAnalyzer.assign()` — detects barres, assigns fingers greedily by fret.
+`handOptimizer.best()` — returns the lowest-difficulty fingering.
+`handOptimizer.optimalPath()` — greedy nearest-neighbor over a chord sequence to minimize total hand shift.
+
+### `caged/`
+The 5 movable major shapes (C, A, G, E, D) that tile the neck. `shapesForKey()` returns all 5 CAGED positions for a given key with their scale notes.
+
+### `analysis/`
+Reverse-maps fret positions to musical identity. Delegates to `@orpheus/engine`'s `chordAnalyzer` and `defaultScaleRegistry`.
+
+---
+
 ## Key structural invariants
 
 1. **No upward imports** — a layer never imports from a layer above it.
 2. **No circular imports** — verified by module topology.
-3. **Interfaces over classes** — most types are interfaces; `Scale` is the only abstract class. This minimizes inheritance hierarchies.
+3. **Interfaces over classes** — most types are interfaces; `Scale` (engine) and `Fretboard`/`ScaleMap` (fretboard) are the only classes.
 4. **Patterns are pure data** — `ScalePattern` objects are frozen plain objects with no methods. Behavior lives in the `Scale` class, not the pattern.
 5. **Factories are injected, not global** — `PitchFactory`, `ChordFactory`, etc. are interfaces that can be swapped for testing.
+6. **Cross-package dependency is one-way** — `@orpheus/fretboard` depends on `@orpheus/engine`; engine has no knowledge of fretboard.

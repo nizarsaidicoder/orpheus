@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   IONIAN_PATTERN, DORIAN_PATTERN, PHRYGIAN_PATTERN, LYDIAN_PATTERN,
   MIXOLYDIAN_PATTERN, AEOLIAN_PATTERN, LOCRIAN_PATTERN, ALL_CHURCH_MODES,
-} from "../../src/scales/modes.js";
-import { scaleFactory } from "../../src/scales/scale.js";
-import { MAJOR_PATTERN } from "../../src/scales/diatonic.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
-import { NoteLetter } from "../../src/primitives/note-name.js";
+} from "../../src/scales/modes.ts";
+import { scaleFactory } from "../../src/scales/scale.ts";
+import { MAJOR_PATTERN } from "../../src/scales/diatonic.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
+import { NoteLetter } from "../../src/primitives/note-name.ts";
 
 describe("Church mode patterns", () => {
   it("all 7 modes are exported and present in ALL_CHURCH_MODES", () => {

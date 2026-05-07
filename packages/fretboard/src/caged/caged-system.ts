@@ -1,6 +1,6 @@
 import type { Key, Pitch } from "@orpheus/engine";
-import type { ChordVoicing, FretPosition } from "../types/fret-position.js";
-import type { Fretboard } from "../fretboard/fretboard.js";
+import type { ChordVoicing, FretPosition } from "../types/fret-position.ts";
+import type { Fretboard } from "../fretboard/fretboard.ts";
 
 export type CAGEDShape = "C" | "A" | "G" | "E" | "D";
 

@@ -4,10 +4,10 @@ import {
   NATURAL_MINOR_PATTERN,
   HARMONIC_MINOR_PATTERN,
   MELODIC_MINOR_PATTERN,
-} from "../../src/scales/diatonic.js";
-import { scaleFactory } from "../../src/scales/scale.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
-import { NoteLetter, Accidental } from "../../src/primitives/note-name.js";
+} from "../../src/scales/diatonic.ts";
+import { scaleFactory } from "../../src/scales/scale.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
+import { NoteLetter, Accidental } from "../../src/primitives/note-name.ts";
 
 describe("Major scale pattern", () => {
   it("has 7 interval offsets starting with 0", () => {

@@ -1,9 +1,9 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { Interval } from "../primitives/interval.js";
-import { pitchArithmetic } from "../primitives/pitch.js";
-import { intervalFactory } from "../primitives/interval.js";
-import type { Chord, ChordAlteration, ChordQuality } from "./chord.js";
-import { rotatePitchesToBass } from "./inversion.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { Interval } from "../primitives/interval.ts";
+import { pitchArithmetic } from "../primitives/pitch.ts";
+import { intervalFactory } from "../primitives/interval.ts";
+import type { Chord, ChordAlteration, ChordQuality } from "./chord.ts";
+import { rotatePitchesToBass } from "./inversion.ts";
 
 /**
  * Configuration bag for building any chord type.

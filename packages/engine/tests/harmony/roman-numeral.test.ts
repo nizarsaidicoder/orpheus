@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { romanNumeralAnalyzer } from "../../src/harmony/roman-numeral.js";
-import { keyFactory } from "../../src/harmony/key.js";
-import { chordFactory } from "../../src/chords/chord-factory.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { romanNumeralAnalyzer } from "../../src/harmony/roman-numeral.ts";
+import { keyFactory } from "../../src/harmony/key.ts";
+import { chordFactory } from "../../src/chords/chord-factory.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const CMajor = keyFactory.major(0);
 const GMajor = keyFactory.major(1);

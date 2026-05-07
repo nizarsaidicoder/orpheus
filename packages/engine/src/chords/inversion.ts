@@ -1,5 +1,5 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { Chord, InversionPosition } from "./chord.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { Chord, InversionPosition } from "./chord.ts";
 
 /**
  * Determine the inversion position of a chord from its bass pitch and root.

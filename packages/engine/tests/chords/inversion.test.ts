@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { inversionAnalyzer } from "../../src/chords/inversion.js";
-import { chordFactory } from "../../src/chords/chord-factory.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { inversionAnalyzer } from "../../src/chords/inversion.ts";
+import { chordFactory } from "../../src/chords/chord-factory.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60);
 const G4 = pitchFactory.fromMidi(67);

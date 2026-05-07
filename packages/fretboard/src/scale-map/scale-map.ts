@@ -1,6 +1,6 @@
 import type { Scale } from "@orpheus/engine";
-import type { Fretboard } from "../fretboard/fretboard.js";
-import type { FretPosition, ScalePosition } from "../types/fret-position.js";
+import type { Fretboard } from "../fretboard/fretboard.ts";
+import type { FretPosition, ScalePosition } from "../types/fret-position.ts";
 
 export class ScaleMap {
   readonly scale: Scale;

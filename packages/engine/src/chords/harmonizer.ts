@@ -1,7 +1,7 @@
-import type { Scale } from "../scales/scale.js";
-import type { Chord, ChordQuality } from "./chord.js";
-import type { Interval } from "../primitives/interval.js";
-import { intervalFactory } from "../primitives/interval.js";
+import type { Scale } from "../scales/scale.ts";
+import type { Chord, ChordQuality } from "./chord.ts";
+import type { Interval } from "../primitives/interval.ts";
+import { intervalFactory } from "../primitives/interval.ts";
 
 /**
  * Extension level for harmonization.

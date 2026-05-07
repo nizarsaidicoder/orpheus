@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { intervalFactory, intervalArithmetic } from "../../src/primitives/interval.js";
+import { intervalFactory, intervalArithmetic } from "../../src/primitives/interval.ts";
 
 describe("IntervalFactory", () => {
   describe("fromNumberAndQuality", () => {

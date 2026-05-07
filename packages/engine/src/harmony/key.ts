@@ -1,11 +1,11 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { SpelledNoteName } from "../primitives/note-name.js";
-import type { Scale } from "../scales/scale.js";
-import { NoteLetter, Accidental, spelledNoteNamesEqual } from "../primitives/note-name.js";
-import { pitchFactory } from "../primitives/pitch.js";
-import { scaleFactory } from "../scales/scale.js";
-import { MAJOR_PATTERN, NATURAL_MINOR_PATTERN } from "../scales/diatonic.js";
-import { ENHARMONIC_TABLE, spellingToPitchClass } from "../utils/enharmonic.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { SpelledNoteName } from "../primitives/note-name.ts";
+import type { Scale } from "../scales/scale.ts";
+import { NoteLetter, Accidental, spelledNoteNamesEqual } from "../primitives/note-name.ts";
+import { pitchFactory } from "../primitives/pitch.ts";
+import { scaleFactory } from "../scales/scale.ts";
+import { MAJOR_PATTERN, NATURAL_MINOR_PATTERN } from "../scales/diatonic.ts";
+import { ENHARMONIC_TABLE, spellingToPitchClass } from "../utils/enharmonic.ts";
 
 /**
  * Modality of a key.

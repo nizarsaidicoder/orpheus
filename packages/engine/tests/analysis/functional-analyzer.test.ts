@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { functionalAnalyzer } from "../../src/analysis/functional-analyzer.js";
-import { keyFactory } from "../../src/harmony/key.js";
-import { chordFactory } from "../../src/chords/chord-factory.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
-import { harmonizer } from "../../src/chords/harmonizer.js";
+import { functionalAnalyzer } from "../../src/analysis/functional-analyzer.ts";
+import { keyFactory } from "../../src/harmony/key.ts";
+import { chordFactory } from "../../src/chords/chord-factory.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
+import { harmonizer } from "../../src/chords/harmonizer.ts";
 
 const CMajor = keyFactory.major(0);
 

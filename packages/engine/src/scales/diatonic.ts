@@ -1,4 +1,4 @@
-import type { ScalePattern } from "./scale.js";
+import type { ScalePattern } from "./scale.ts";
 
 /** Major scale — Ionian mode. W W H W W W H (semitones: 0 2 4 5 7 9 11). */
 export const MAJOR_PATTERN: ScalePattern = Object.freeze({

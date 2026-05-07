@@ -1,7 +1,7 @@
 import { pitchArithmetic } from "@orpheus/engine";
 import type { Pitch, PitchClass } from "@orpheus/engine";
-import type { Tuning } from "../types/tuning.js";
-import type { FretPosition } from "../types/fret-position.js";
+import type { Tuning } from "../types/tuning.ts";
+import type { FretPosition } from "../types/fret-position.ts";
 
 export class Fretboard {
   readonly tuning: Tuning;

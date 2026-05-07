@@ -1,6 +1,6 @@
-import type { Chord } from "../chords/chord.js";
-import type { Key } from "../harmony/key.js";
-import type { Scale } from "../scales/scale.js";
+import type { Chord } from "../chords/chord.ts";
+import type { Key } from "../harmony/key.ts";
+import type { Scale } from "../scales/scale.ts";
 
 // ---------------------------------------------------------------------------
 // Internal helpers

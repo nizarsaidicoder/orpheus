@@ -1,6 +1,6 @@
-import type { ChordVoicing, FretPosition } from "../types/fret-position.js";
-import type { Fingering, FingerAssignment, BarreSegment, Finger } from "../types/fingering.js";
-import { scoreVoicing } from "../chord-shapes/shape-scorer.js";
+import type { ChordVoicing, FretPosition } from "../types/fret-position.ts";
+import type { Fingering, FingerAssignment, BarreSegment, Finger } from "../types/fingering.ts";
+import { scoreVoicing } from "../chord-shapes/shape-scorer.ts";
 
 function detectBarre(played: FretPosition[]): BarreSegment | undefined {
   // Group by fret, look for 2+ positions on the same fret spanning contiguous strings

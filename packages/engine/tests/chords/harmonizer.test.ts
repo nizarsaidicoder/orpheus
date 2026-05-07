@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { harmonizer } from "../../src/chords/harmonizer.js";
-import { scaleFactory } from "../../src/scales/scale.js";
-import { MAJOR_PATTERN } from "../../src/scales/diatonic.js";
-import { pitchFactory } from "../../src/primitives/pitch.js";
+import { harmonizer } from "../../src/chords/harmonizer.ts";
+import { scaleFactory } from "../../src/scales/scale.ts";
+import { MAJOR_PATTERN } from "../../src/scales/diatonic.ts";
+import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60);
 const cMajor = scaleFactory.build(MAJOR_PATTERN, C4);

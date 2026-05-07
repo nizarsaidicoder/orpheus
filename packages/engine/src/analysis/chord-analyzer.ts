@@ -1,9 +1,8 @@
-import type { Pitch } from "../primitives/pitch.js";
-import type { Chord } from "../chords/chord.js";
-import type { ChordQuality } from "../chords/chord.js";
-import { chordFactory } from "../chords/chord-factory.js";
-import { pitchFactory } from "../primitives/pitch.js";
-import { intervalFactory } from "../primitives/interval.js";
+import type { Pitch } from "../primitives/pitch.ts";
+import type { Chord } from "../chords/chord.ts";
+import type { ChordQuality } from "../chords/chord.ts";
+import { chordFactory } from "../chords/chord-factory.ts";
+import { pitchFactory } from "../primitives/pitch.ts";
 
 // ---------------------------------------------------------------------------
 // Chord templates — interval sets from root (root excluded)

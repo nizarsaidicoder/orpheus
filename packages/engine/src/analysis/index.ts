@@ -1,3 +1,3 @@
-export * from "./chord-analyzer.js";
-export * from "./key-detector.js";
-export * from "./functional-analyzer.js";
+export * from "./chord-analyzer.ts";
+export * from "./key-detector.ts";
+export * from "./functional-analyzer.ts";
