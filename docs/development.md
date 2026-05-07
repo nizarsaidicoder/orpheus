@@ -68,18 +68,18 @@ The current codebase contains **interfaces, abstract classes, and pure-data impl
 
 ### Phase 4 — Harmony
 
-- [ ] `key.ts` — implement `KeyFactory` (pre-compute all 30 standard keys)
-- [ ] `roman-numeral.ts` — implement `RomanNumeralAnalyzer` (parse + render + analyze + realize)
-- [ ] `circle-of-fifths.ts` — implement the linked-ring structure
-- [ ] `secondary-dominant.ts` — implement `SecondaryDominantAnalyzer`
-- [ ] `tritone-sub.ts` — implement `TritoneSubstitution`
-- [ ] `modulation.ts` — implement `ModulationFinder` (graph search)
+- [x] `key.ts` — implement `KeyFactory` (pre-compute all 30 standard keys)
+- [x] `roman-numeral.ts` — implement `RomanNumeralAnalyzer` (parse + render + analyze + realize)
+- [x] `circle-of-fifths.ts` — implement the linked-ring structure
+- [x] `secondary-dominant.ts` — implement `SecondaryDominantAnalyzer`
+- [x] `tritone-sub.ts` — implement `TritoneSubstitution`
+- [x] `modulation.ts` — implement `ModulationFinder` (graph search)
 
 ### Phase 5 — Analysis
 
-- [ ] `chord-analyzer.ts` — implement `ChordAnalyzer` (rotation + scoring algorithm)
-- [ ] `key-detector.ts` — implement `KeyDetector` (Krumhansl-Schmuckler correlation)
-- [ ] `functional-analyzer.ts` — implement `FunctionalAnalyzer` (rule-based classification)
+- [x] `chord-analyzer.ts` — implement `ChordAnalyzer` (rotation + scoring algorithm)
+- [x] `key-detector.ts` — implement `KeyDetector` (Krumhansl-Schmuckler correlation)
+- [x] `functional-analyzer.ts` — implement `FunctionalAnalyzer` (rule-based classification)
 
 ## Testing
 
