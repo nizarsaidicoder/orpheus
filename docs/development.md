@@ -62,9 +62,9 @@ The current codebase contains **interfaces, abstract classes, and pure-data impl
 ### Phase 3 — Chords
 
 - [x] `chord-factory.ts` — implement `ChordFactory` (depends on pitch + interval impls)
-- [ ] `inversion.ts` — implement `InversionAnalyzer`
-- [ ] `voicing.ts` — implement `VoicingGenerator`
-- [ ] `harmonizer.ts` — implement `Harmonizer`
+- [x] `inversion.ts` — implement `InversionAnalyzer`
+- [x] `voicing.ts` — implement `VoicingGenerator`
+- [x] `harmonizer.ts` — implement `Harmonizer`
 
 ### Phase 4 — Harmony
 

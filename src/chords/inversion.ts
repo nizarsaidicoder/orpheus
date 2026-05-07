@@ -24,6 +24,46 @@ export interface InversionAnalyzer {
   isRootPosition(chord: Chord): boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Concrete implementation
+// ---------------------------------------------------------------------------
+
+export const inversionAnalyzer: InversionAnalyzer = {
+  analyze(chord: Chord): InversionPosition | undefined {
+    const bass = chord.bassNote ?? chord.pitches[0];
+    if (bass === undefined) return "root";
+    const bassPC = bass.pitchClass;
+    if (bassPC === chord.root.pitchClass) return "root";
+
+    // Compute pitch class of each chord tone (root + each interval)
+    const chordTonePCs = chord.intervalStructure.map(
+      iv => ((chord.root.pitchClass + iv.semitones) % 12 + 12) % 12
+    );
+
+    const slotIndex = chordTonePCs.findIndex(pc => pc === bassPC);
+    if (slotIndex === 0) return "first";
+    if (slotIndex === 1) return "second";
+    if (slotIndex === 2) return "third";
+    return undefined; // non-chord-tone bass (slash chord) or extended degree
+  },
+
+  bassIndex(chord: Chord): number {
+    const pos = inversionAnalyzer.analyze(chord);
+    if (pos === undefined || pos === "root") return 0;
+    if (pos === "first") return 1;
+    if (pos === "second") return 2;
+    return 3;
+  },
+
+  isRootPosition(chord: Chord): boolean {
+    return inversionAnalyzer.analyze(chord) === "root";
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Pure helper
+// ---------------------------------------------------------------------------
+
 /**
  * Rotate chord pitches to place a specific chord tone in the bass.
  * Raises pitches below the target bass by one octave to maintain ascending order.
