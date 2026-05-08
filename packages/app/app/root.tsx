@@ -1,6 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { LinksFunction } from "react-router";
 import appCss from "~/styles/app.css?url";
+import { TopBar } from "~/components/top-bar/TopBar.tsx";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -18,19 +19,13 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        {/* Studio Dark is default; add .light class only when user/system wants light */}
+        {/* Studio Dark is default — add .light class only when user/system wants light */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem('theme');var l=t==='light'||(t===null&&!window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('light',l);})()`,
@@ -47,5 +42,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <>
+      <TopBar />
+      <main className="pt-14 min-h-screen bg-background">
+        <Outlet />
+      </main>
+    </>
+  );
 }

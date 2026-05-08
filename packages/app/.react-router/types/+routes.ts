@@ -14,20 +14,60 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/chords": {
+    params: {};
+  };
+  "/scales": {
+    params: {};
+  };
+  "/identifier": {
+    params: {};
+  };
+  "/progressions": {
+    params: {};
+  };
+  "/arpeggios": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/";
+    page: "/" | "/chords" | "/scales" | "/identifier" | "/progressions" | "/arpeggios";
   };
   "routes/home.tsx": {
     id: "routes/home";
     page: "/";
+  };
+  "routes/chords.tsx": {
+    id: "routes/chords";
+    page: "/chords";
+  };
+  "routes/scales.tsx": {
+    id: "routes/scales";
+    page: "/scales";
+  };
+  "routes/identifier.tsx": {
+    id: "routes/identifier";
+    page: "/identifier";
+  };
+  "routes/progressions.tsx": {
+    id: "routes/progressions";
+    page: "/progressions";
+  };
+  "routes/arpeggios.tsx": {
+    id: "routes/arpeggios";
+    page: "/arpeggios";
   };
 };
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/home": typeof import("./app/routes/home.tsx");
+  "routes/chords": typeof import("./app/routes/chords.tsx");
+  "routes/scales": typeof import("./app/routes/scales.tsx");
+  "routes/identifier": typeof import("./app/routes/identifier.tsx");
+  "routes/progressions": typeof import("./app/routes/progressions.tsx");
+  "routes/arpeggios": typeof import("./app/routes/arpeggios.tsx");
 };

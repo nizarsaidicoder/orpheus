@@ -1,8 +1,9 @@
-import { Button } from "~/components/ui/button";
+import { redirect } from "react-router";
+
+export function loader() {
+  return redirect("/chords");
+}
+
 export default function Home() {
-  return (
-    <div className="p-8 text-foreground">
-      <Button>Hello world</Button>
-    </div>
-  );
+  return null;
 }
