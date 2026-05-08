@@ -3,9 +3,7 @@ import { chordAnalyzer } from "../../src/analysis/chord-analyzer.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60);
-const D4 = pitchFactory.fromMidi(62);
 const E4 = pitchFactory.fromMidi(64);
-const F4 = pitchFactory.fromMidi(65);
 const G4 = pitchFactory.fromMidi(67);
 const B4 = pitchFactory.fromMidi(71);
 const F5 = pitchFactory.fromMidi(77);

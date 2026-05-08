@@ -2,7 +2,8 @@ import type { Interval } from "../primitives/interval.ts";
 import type { Pitch } from "../primitives/pitch.ts";
 import { intervalFactory } from "../primitives/interval.ts";
 import { pitchArithmetic, pitchFactory } from "../primitives/pitch.ts";
-import { Accidental, NATURAL_PC, NoteLetter } from "../index.ts";
+import { NATURAL_PC, NoteLetter } from "../index.ts";
+import type { Accidental } from "../primitives/note-name.ts";
 import { scaleDegreeName } from "./degree-names.ts";
 import type { DegreeNameOptions } from "./degree-names.ts";
 

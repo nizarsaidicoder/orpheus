@@ -1,7 +1,6 @@
 import type { Chord } from "../chords/chord.ts";
 import type { Key } from "./key.ts";
 import { chordFactory } from "../chords/chord-factory.ts";
-import { pitchFactory } from "../primitives/pitch.ts";
 
 /**
  * Scale degree as a Roman numeral literal type.

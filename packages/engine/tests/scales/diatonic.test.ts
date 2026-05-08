@@ -8,7 +8,8 @@ import {
 import { DORIAN_PATTERN } from "../../src/scales/index.ts";
 import { scaleFactory } from "../../src/scales/scale.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
-import { NoteLetter, Accidental, SpelledNoteName } from "../../src/primitives/note-name.ts";
+import { NoteLetter, Accidental } from "../../src/primitives/note-name.ts";
+import type { SpelledNoteName } from "../../src/index.ts";
 
 
 // ── Shared fixtures ───────────────────────────────────────────────────────────

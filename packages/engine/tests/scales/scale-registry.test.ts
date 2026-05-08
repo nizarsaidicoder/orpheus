@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { defaultScaleRegistry, createScaleRegistry } from "../../src/scales/scale-registry.ts";
+import { defaultScaleRegistry } from "../../src/scales/scale-registry.ts";
 
 describe("defaultScaleRegistry", () => {
   it("contains 'major' pattern", () => {

@@ -129,7 +129,6 @@ describe("PitchFactory", () => {
 describe("PitchArithmetic", () => {
   const C4 = pitchFactory.fromMidi(60);
   const G4 = pitchFactory.fromMidi(67);
-  const C3 = pitchFactory.fromMidi(48);
 
   describe("transpose", () => {
     it("transposes C4 up by 7 semitones → G4", () => {

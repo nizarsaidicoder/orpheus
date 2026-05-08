@@ -4,8 +4,8 @@ import { pitchArithmetic, pitchFactory } from "../primitives/pitch.ts";
 import { intervalFactory } from "../primitives/interval.ts";
 import type { Chord, ChordAlteration, ChordQuality } from "./chord.ts";
 import { rotatePitchesToBass } from "./inversion.ts";
-import { Accidental, NoteLetter } from "../index.ts";
-
+import { NoteLetter } from "../primitives/note-name.ts";
+import type { Accidental } from "../primitives/note-name.ts";
 /**
  * Configuration bag for building any chord type.
  * Used by `ChordFactory.build()` for full control.
@@ -210,7 +210,6 @@ function buildPitches(root: Pitch, intervalStructure: ReadonlyArray<Interval>): 
       [NoteLetter.C]: 0, [NoteLetter.D]: 2, [NoteLetter.E]: 4,
       [NoteLetter.F]: 5, [NoteLetter.G]: 7, [NoteLetter.A]: 9, [NoteLetter.B]: 11
     };
-    const rootPc = naturalPc[root.spelling.letter] + root.spelling.accidental;
     const targetNaturalPc = naturalPc[targetLetter];
 
     // Calculate the accidental needed to match the interval's semitones

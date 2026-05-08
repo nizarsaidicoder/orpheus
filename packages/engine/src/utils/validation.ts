@@ -24,7 +24,7 @@ export function assertMidi(value: number): asserts value is MidiNumber {
 
 /** Asserts `value` is an integer in [1, max]; throws RangeError otherwise. */
 export function assertScaleDegree(value: number, max: number): void {
-  if (!Number.isInteger(value) || value < 1) {
-    throw new RangeError(`Invalid scale degree: ${value}. Must be integer ≥ 1.`);
+  if (!Number.isInteger(value) || value < 1 || value > max) {
+    throw new RangeError(`Invalid scale degree: ${value}. Must be integer in [1, ${max}].`);
   }
 }

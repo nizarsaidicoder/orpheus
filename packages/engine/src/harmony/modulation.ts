@@ -1,6 +1,5 @@
 import type { Chord } from "../chords/chord.ts";
 import type { Key } from "./key.ts";
-import type { CircleNode } from "./circle-of-fifths.ts";
 import { circleOfFifths } from "./circle-of-fifths.ts";
 import { harmonizer } from "../chords/harmonizer.ts";
 
@@ -29,14 +28,6 @@ function makePivotStep(targetKey: Key, pivot: Chord, fromKey: Key): ModulationSt
     mechanism: "pivot-chord",
     pivotChord: pivot,
     description: `Pivot: chord shared by ${keyLabel(fromKey)} and ${keyLabel(targetKey)}`,
-  };
-}
-
-function makePivotStepNoChord(targetKey: Key, fromKey: Key): ModulationStep {
-  return {
-    targetKey,
-    mechanism: "pivot-chord",
-    description: `Pivot modulation from ${keyLabel(fromKey)} to ${keyLabel(targetKey)}`,
   };
 }
 

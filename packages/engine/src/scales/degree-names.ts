@@ -39,15 +39,6 @@ const FUNCTIONAL_NAMES = [
     "leading-tone",
 ] as const;
 
-const TECHNICAL_NAMES = [
-    "tonic",
-    "supertonic",
-    "mediant",
-    "subdominant",
-    "dominant",
-    "submediant",
-    "subtonic",       // degree 7 when a whole step below tonic
-] as const;
 
 const SOLFEGE = ["do", "re", "mi", "fa", "sol", "la", "ti"] as const;
 const SOLFEGE_FIXED = ["do", "re", "mi", "fa", "sol", "la", "si"] as const;

@@ -10,7 +10,6 @@ function note(letter: NoteLetter, acc: Accidental = Accidental.Natural, octave =
 
 const C4 = note(NoteLetter.C);
 const G4 = note(NoteLetter.G);
-const B3 = note(NoteLetter.B, Accidental.Natural, 3);
 
 // ── Classical (default) ───────────────────────────────────────────────────────
 

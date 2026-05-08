@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { pitchMath } from "../../src/utils/math.ts";
+import type { PitchClass } from "../../src/primitives/pitch.ts";
+
+const PC = (n: number) => n as PitchClass;
 
 describe("pitchMath.mod()", () => {
   it("mod(7, 12) = 7", () => { expect(pitchMath.mod(7, 12)).toBe(7); });
@@ -24,28 +27,28 @@ describe("pitchMath.toPitchClass()", () => {
 
 describe("pitchMath.pitchClassDistance()", () => {
   it("distance(0, 7) = 5 (C to G, shortest path is 5 downward)", () => {
-    expect(pitchMath.pitchClassDistance(0 as any, 7 as any)).toBe(5);
+    expect(pitchMath.pitchClassDistance(PC(0), PC(7))).toBe(5);
   });
   it("distance(0, 6) = 6 (tritone, maximum)", () => {
-    expect(pitchMath.pitchClassDistance(0 as any, 6 as any)).toBe(6);
+    expect(pitchMath.pitchClassDistance(PC(0), PC(6))).toBe(6);
   });
   it("distance(0, 0) = 0", () => {
-    expect(pitchMath.pitchClassDistance(0 as any, 0 as any)).toBe(0);
+    expect(pitchMath.pitchClassDistance(PC(0), PC(0))).toBe(0);
   });
   it("is symmetric", () => {
-    expect(pitchMath.pitchClassDistance(3 as any, 9 as any))
-      .toBe(pitchMath.pitchClassDistance(9 as any, 3 as any));
+    expect(pitchMath.pitchClassDistance(PC(3), PC(9)))
+      .toBe(pitchMath.pitchClassDistance(PC(9), PC(3)));
   });
 });
 
 describe("pitchMath.directedInterval()", () => {
   it("C up to G = 7", () => {
-    expect(pitchMath.directedInterval(0 as any, 7 as any, "up")).toBe(7);
+    expect(pitchMath.directedInterval(PC(0), PC(7), "up")).toBe(7);
   });
   it("G down to C = -7", () => {
-    expect(pitchMath.directedInterval(7 as any, 0 as any, "down")).toBe(-7);
+    expect(pitchMath.directedInterval(PC(7), PC(0), "down")).toBe(-7);
   });
   it("same pitch up = 0", () => {
-    expect(pitchMath.directedInterval(5 as any, 5 as any, "up")).toBe(0);
+    expect(pitchMath.directedInterval(PC(5), PC(5), "up")).toBe(0);
   });
 });
