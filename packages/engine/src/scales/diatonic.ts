@@ -47,6 +47,17 @@ export const MELODIC_MINOR_PATTERN: ScalePattern = Object.freeze({
 });
 
 /**
+ * Melodic minor scale — descending form.
+ * Descending melodic minor is identical to natural minor:
+ * [0, 2, 3, 5, 7, 8, 10]
+ */
+export const MELODIC_MINOR_DESCENDING: ScalePattern = Object.freeze({
+  name: "melodic-minor-descending",
+  category: "melodic",
+  intervals: [0, 2, 3, 5, 7, 8, 10], // same as natural minor
+});
+
+/**
  * Harmonic major — major scale with lowered 6th. Creates an augmented 2nd between b6 and 7.
  * Intervals: 0 2 4 5 7 8 11
  */

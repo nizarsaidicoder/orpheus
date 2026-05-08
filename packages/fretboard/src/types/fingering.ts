@@ -29,4 +29,5 @@ export interface FretboardConstraints {
   readonly maxStrings?: number;
   readonly fromFret?: number;
   readonly toFret?: number;
+  readonly maxVoicings?: number;
 }

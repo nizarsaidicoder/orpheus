@@ -1,7 +1,6 @@
-import type { Scale } from "@orpheus/engine";
+import type { Scale, DegreeNameOptions } from "@orpheus/engine";
 import type { Fretboard } from "../fretboard/fretboard.ts";
 import type { FretPosition, ScalePosition } from "../types/fret-position.ts";
-
 export class ScaleMap {
   readonly scale: Scale;
   readonly fretboard: Fretboard;
@@ -28,46 +27,49 @@ export class ScaleMap {
   }
 
   scalePositions(fretSpan = 4): ReadonlyArray<ScalePosition> {
-    const rootPC = this.scale.root.pitchClass;
-    const result: ScalePosition[] = [];
     const maxFret = this.fretboard.fretCount;
     const seen = new Set<string>();
+    const result: ScalePosition[] = [];
 
     for (let start = 0; start <= maxFret - fretSpan; start++) {
       const end = start + fretSpan;
       const inWindow = this.positionsInFretRange(start, end);
       if (inWindow.length === 0) continue;
 
-      // Deduplicate windows by their pitch-class fingerprint
       const pcKey = [...new Set(inWindow.map(p => p.pitch.pitchClass))].sort().join(",");
       if (seen.has(pcKey)) continue;
       seen.add(pcKey);
 
-      // Tag CAGED shape: look for a root position in the window
-      let cagedShape: ScalePosition["cagedShape"];
-      const rootPositions = inWindow.filter(p => p.pitch.pitchClass === rootPC);
-      if (rootPositions.length > 0) {
-        cagedShape = _detectCagedShape(rootPositions[0]!, this.fretboard);
-      }
-
-      const sp: ScalePosition = cagedShape !== undefined
-        ? { positions: inWindow, fretRange: [start, end], cagedShape }
-        : { positions: inWindow, fretRange: [start, end] };
-      result.push(sp);
+      result.push({ positions: inWindow, fretRange: [start, end] });
     }
 
     return result;
   }
+  degreeName(degree: number, options?: DegreeNameOptions): string {
+    return this.scale.degreeName(degree, options);
+  }
 }
 
-// Rough CAGED shape detection by root fret position and string
-function _detectCagedShape(rootPos: FretPosition, fretboard: Fretboard): ScalePosition["cagedShape"] {
-  const stringCount = fretboard.stringCount;
-  const isLowString = rootPos.string >= Math.ceil(stringCount / 2);
+// function _detectCagedShape(rootPos: FretPosition, fretboard: Fretboard): CAGEDShape | undefined {
+//   // Build a minimal voicing from the window positions and detect shape
+//   const voicing = {
+//     slots: [], // not needed — shapeOf works on intervals from root
+//   };
+//   // Simpler: use the root position's string + fret to look up CAGED shape
+//   // C shape: root on string 5 (A string), finger shape covers frets root..root+3
+//   // Use the cagedSystem's knowledge directly
+//   const rootFret = rootPos.fret;
+//   const stringNumber = rootPos.string;
+//   const stringCount = fretboard.stringCount;
 
-  if (rootPos.fret === 0 && isLowString) return "E";
-  if (rootPos.fret === 0 && !isLowString) return "D";
-  if (rootPos.fret <= 2 && isLowString) return "A";
-  if (rootPos.fret <= 4) return "G";
-  return "C";
-}
+//   // Heuristic based on which string the root is on
+//   if (stringNumber === stringCount || stringNumber === stringCount - 1) {
+//     // Root on low E or A string → likely E or A shape
+//     return rootFret <= 3 ? "E" : "A";
+//   }
+//   if (stringNumber === stringCount - 2) return "D";
+//   if (stringNumber === stringCount - 3) return "G";
+//   if (stringNumber === stringCount - 4) return "C";
+
+//   return undefined;
+// }

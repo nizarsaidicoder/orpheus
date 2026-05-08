@@ -1,8 +1,11 @@
-import type { SpelledNoteName } from "./note-name.ts";
+import type { Accidental, SpelledNoteName } from "./note-name.ts";
 import { NoteLetter } from "./note-name.ts";
 import { ENHARMONIC_TABLE, enharmonicEquivalentOf } from "../utils/enharmonic.ts";
 import { frequencyConverter } from "./frequency.ts";
 import { assertMidi } from "../utils/validation.ts";
+import { BASE_SEMITONES, intervalArithmetic, PERFECT_NUMBERS, qualityFromOffset } from "./interval.ts";
+import type { Interval, IntervalNumber } from "./interval.ts";
+import { addDiatonicSteps } from "../chords/index.ts";
 
 // ---------------------------------------------------------------------------
 // Branded numeric types — prevent accidental coercion from arbitrary numbers
@@ -101,6 +104,27 @@ export interface PitchArithmetic {
    * If no standard enharmonic equivalent exists (e.g. C natural), returns the same pitch.
    */
   respell(pitch: Pitch): Pitch;
+
+  /**
+  * Transpose a pitch by a diatonic interval, preserving enharmonic spelling.
+  * Uses the interval's number and quality to determine the correct target letter
+  * and accidental in the context of the source pitch's spelling.
+  *
+  * @example transposeByInterval(C4, M3) → E4
+  * @example transposeByInterval(C4, A4) → F#4 (not Gb4)
+  */
+  transposeByInterval(pitch: Pitch, interval: Interval): Pitch;
+
+  /**
+   * Return the diatonic interval between two pitches, taking their spellings
+   * into account. The result carries `number`, `quality`, and `semitones`.
+   *
+   * @example intervalBetween(C4, E4) → major third (4 semitones)
+   * @example intervalBetween(C4, Eb4) → minor third (3 semitones)
+   * @example intervalBetween(C4, D#4) → augmented second (3 semitones)
+   *   — same semitones as minor third, but different spelling
+   */
+  intervalBetween(a: Pitch, b: Pitch): Interval;
 }
 
 // ---------------------------------------------------------------------------
@@ -134,8 +158,9 @@ export const pitchFactory: PitchFactory = {
   fromMidiWithSpelling(midi: number, spelling: SpelledNoteName): Pitch {
     assertMidi(midi);
     const frequency = frequencyConverter.midiToHz(midi as MidiNumber);
-    const octave = Math.floor(midi / 12) - 1;
     const pc = midi % 12;
+    const naturalPc = NATURAL_PC[spelling.letter];
+    const octave = Math.floor((midi - naturalPc - spelling.accidental) / 12) - 1;
     return { midi: midi as MidiNumber, spelling, frequency, pitchClass: pc as PitchClass, octave };
   },
 
@@ -174,5 +199,58 @@ export const pitchArithmetic: PitchArithmetic = {
   respell(pitch: Pitch): Pitch {
     const newSpelling = enharmonicEquivalentOf(pitch.spelling);
     return pitchFactory.fromMidiWithSpelling(pitch.midi, newSpelling);
+  },
+
+  transposeByInterval(pitch: Pitch, interval: Interval): Pitch {
+    const targetLetter = addDiatonicSteps(pitch.spelling.letter, interval.number - 1);
+    const targetOctave = pitch.octave + Math.floor((pitch.spelling.letter + interval.number - 1) / 7);
+    const targetNaturalMidi = (targetOctave + 1) * 12 + NATURAL_PC[targetLetter];
+    const targetMidi = pitch.midi + interval.semitones;
+    const neededAccidental = targetMidi - targetNaturalMidi;
+
+    return pitchFactory.fromSpelling(
+      { letter: targetLetter, accidental: neededAccidental as Accidental },
+      targetOctave,
+    );
+  },
+
+  intervalBetween(a: Pitch, b: Pitch): Interval {
+    const semitones = b.midi - a.midi;
+    const aLetter = a.spelling.letter;
+    const bLetter = b.spelling.letter;
+
+    // Diatonic steps: how many staff positions apart (ignoring accidentals)
+    const rawSteps = bLetter - aLetter;
+    // Octave adjustment: how many octaves apart
+    const octaveDiff = b.octave - a.octave;
+    const diatonicSteps = rawSteps + octaveDiff * 7;
+
+    // Interval number = diatonic steps + 1 (1-based)
+    let number: number;
+    if (diatonicSteps >= 0) {
+      number = diatonicSteps + 1;
+    } else {
+      // Invert: interval from b up to a, then invert quality
+      const inverted = pitchArithmetic.intervalBetween(b, a);
+      return intervalArithmetic.invert(inverted);
+    }
+
+    // Clamp number to valid range
+    const clampedNumber = Math.max(1, Math.min(13, number)) as IntervalNumber;
+
+    // Determine the "natural" semitones this interval number would have
+    // in a major scale context
+    const isPerfect = PERFECT_NUMBERS.has(clampedNumber);
+    const baseSemitones = BASE_SEMITONES[clampedNumber] ?? semitones;
+    const offset = semitones - baseSemitones;
+
+    const quality = qualityFromOffset(offset, isPerfect);
+
+    return {
+      number: clampedNumber,
+      quality,
+      semitones,
+      isCompound: clampedNumber > 8,
+    };
   },
 };

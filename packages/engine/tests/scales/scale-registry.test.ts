@@ -13,6 +13,11 @@ describe("defaultScaleRegistry", () => {
   it("returns undefined for unknown scale", () => {
     expect(defaultScaleRegistry.get("not-a-scale")).toBeUndefined();
   });
+  it("melodic-minor-descending is registered and equals natural minor intervals", () => {
+    const pattern = defaultScaleRegistry.get("melodic-minor-descending");
+    expect(pattern).toBeDefined();
+    expect(pattern!.intervals).toEqual([0, 2, 3, 5, 7, 8, 10]);
+  });
 
   it("byCategory('diatonic') returns at least 2 patterns", () => {
     expect(defaultScaleRegistry.byCategory("diatonic").length).toBeGreaterThanOrEqual(2);

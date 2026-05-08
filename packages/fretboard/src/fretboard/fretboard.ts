@@ -6,6 +6,7 @@ import type { FretPosition } from "../types/fret-position.ts";
 export class Fretboard {
   readonly tuning: Tuning;
   readonly fretCount: number;
+  private _allPositionsCache: ReadonlyArray<FretPosition> | undefined;
 
   constructor(tuning: Tuning, fretCount = 24) {
     this.tuning = tuning;
@@ -43,17 +44,21 @@ export class Fretboard {
     return this._allPositions().filter(p => p.fret >= fromFret && p.fret <= toFret);
   }
 
+
   private _allPositions(): ReadonlyArray<FretPosition> {
-    const result: FretPosition[] = [];
-    for (const str of this.tuning.strings) {
-      for (let fret = 0; fret <= this.fretCount; fret++) {
-        result.push({
-          string: str.number,
-          fret,
-          pitch: pitchArithmetic.transpose(str.openPitch, fret),
-        });
+    if (!this._allPositionsCache) {
+      const result: FretPosition[] = [];
+      for (const str of this.tuning.strings) {
+        for (let fret = 0; fret <= this.fretCount; fret++) {
+          result.push({
+            string: str.number,
+            fret,
+            pitch: pitchArithmetic.transpose(str.openPitch, fret),
+          });
+        }
       }
+      this._allPositionsCache = result;
     }
-    return result;
+    return this._allPositionsCache;
   }
 }

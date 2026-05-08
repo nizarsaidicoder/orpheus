@@ -177,12 +177,12 @@ export const SEMITONES = {
 // Internal lookup tables and helpers
 // ---------------------------------------------------------------------------
 
-const BASE_SEMITONES: Record<IntervalNumber, number> = {
+export const BASE_SEMITONES: Record<IntervalNumber, number> = {
   1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11,
   8: 12, 9: 14, 10: 16, 11: 17, 12: 19, 13: 21,
 };
 
-const PERFECT_NUMBERS = new Set<number>([1, 4, 5, 8, 11, 12]);
+export const PERFECT_NUMBERS = new Set<number>([1, 4, 5, 8, 11, 12]);
 
 const SEMITONES_TO_INTERVAL: Readonly<Record<number, [IntervalNumber, IntervalQuality]>> = {
   0:  [1,  "perfect"],
@@ -231,7 +231,7 @@ function qualityOffset(quality: IntervalQuality, isPerfect: boolean): number {
   }
 }
 
-function qualityFromOffset(offset: number, isPerfect: boolean): IntervalQuality {
+export function qualityFromOffset(offset: number, isPerfect: boolean): IntervalQuality {
   if (isPerfect) {
     if (offset <= -2) return "doubly-diminished";
     if (offset === -1) return "diminished";

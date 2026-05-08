@@ -34,6 +34,9 @@ export function scoreVoicing(voicing: ChordVoicing): number {
   // Thin voicing penalty
   if (played.length <= 3) score += 5;
 
+  // CAGED shape bonus: familiar shapes are easier to play
+  if (voicing.shape !== undefined) score -= 10;
+
   // Root not in bass penalty — checked externally in finder
   return Math.max(0, score);
 }

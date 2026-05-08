@@ -226,7 +226,7 @@ function buildPitches(root: Pitch, intervalStructure: ReadonlyArray<Interval>): 
 }
 
 /** Add `steps` diatonic steps to a letter (C+2=E, A+2=B, G+1=A) */
-function addDiatonicSteps(start: NoteLetter, steps: number): NoteLetter {
+export function addDiatonicSteps(start: NoteLetter, steps: number): NoteLetter {
   const letters = [NoteLetter.C, NoteLetter.D, NoteLetter.E, NoteLetter.F, NoteLetter.G, NoteLetter.A, NoteLetter.B];
   const idx = letters.indexOf(start);
   return letters[(idx + steps) % 7]!;

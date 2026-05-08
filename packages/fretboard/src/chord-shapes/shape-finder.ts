@@ -4,6 +4,7 @@ import type { FretPosition, ChordVoicing } from "../types/fret-position.ts";
 import type { FretboardConstraints, Fingering } from "../types/fingering.ts";
 import { fingeringAnalyzer } from "../fingering/fingering-analyzer.ts";
 import { scoreVoicing } from "./shape-scorer.ts";
+import { cagedSystem } from "../caged/caged-system.ts";
 
 function activeSpan(voicing: ChordVoicing): number {
   const active = voicing.slots
@@ -47,9 +48,11 @@ export const shapeFinder = {
       maxFretSpan = 4,
       allowOpenStrings = true,
       requireRootInBass = false,
+      maxStrings = 6,
       minStrings = 3,
       fromFret = 0,
       toFret = 12,
+      maxVoicings = 50,
     } = constraints;
 
     const requiredPCs = new Set(chord.pitches.map(p => p.pitchClass as number));
@@ -70,6 +73,8 @@ export const shapeFinder = {
     for (const combo of combinations(perString)) {
       const played = combo.filter((s): s is FretPosition => s !== null);
       if (played.length < minStrings) continue;
+      if (played.length > maxStrings) continue; 
+
 
       // Check fret span
       const voicing: ChordVoicing = { slots: combo };
@@ -94,7 +99,16 @@ export const shapeFinder = {
       if (seen.has(sig)) continue;
       seen.add(sig);
 
-      results.push(voicing);
+      const shape = cagedSystem.shapeOf(voicing, chord.root);
+
+      const tagged: ChordVoicing = {
+        ...voicing,
+        shape,
+      };
+
+      results.push(tagged);
+      if (results.length >= maxVoicings) break;
+
     }
 
     results.sort((a, b) => scoreVoicing(a) - scoreVoicing(b));
