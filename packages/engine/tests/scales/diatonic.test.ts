@@ -10,6 +10,7 @@ import { scaleFactory } from "../../src/scales/scale.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
 import { NoteLetter, Accidental, SpelledNoteName } from "../../src/primitives/note-name.ts";
 
+
 // ── Shared fixtures ───────────────────────────────────────────────────────────
 
 const NATURAL_PC: Record<number, number> = {
@@ -295,5 +296,48 @@ describe("Scale enharmonic spelling", () => {
     const transposed = scale.transpose(1);
     expect(transposed.root.midi).toBe(62);
     expect(transposed.root.spelling.letter).toBe(NoteLetter.D);
+  });
+});
+
+describe("Scale.degreeName()", () => {
+  it("C major functional names", () => {
+    expect(cMajor.degreeName(1)).toBe("tonic");
+    expect(cMajor.degreeName(2)).toBe("supertonic");
+    expect(cMajor.degreeName(3)).toBe("mediant");
+    expect(cMajor.degreeName(4)).toBe("subdominant");
+    expect(cMajor.degreeName(5)).toBe("dominant");
+    expect(cMajor.degreeName(6)).toBe("submediant");
+    expect(cMajor.degreeName(7)).toBe("leading-tone");
+  });
+
+  it("degree(8) wraps to 'tonic'", () => {
+    expect(cMajor.degreeName(8)).toBe("tonic");
+  });
+
+  it("degree(9) wraps to 'supertonic'", () => {
+    expect(cMajor.degreeName(9)).toBe("supertonic");
+  });
+
+  it("throws RangeError for degree < 1", () => {
+    expect(() => cMajor.degreeName(0)).toThrow(RangeError);
+  });
+
+  it("C natural minor degree 7 = subtonic in technical style", () => {
+    const cMin = scaleFactory.build(NATURAL_MINOR_PATTERN, C4);
+    expect(cMin.degreeName(7, { style: "technical" })).toBe("subtonic");
+  });
+
+  it("C major degree 7 = leading-tone in technical style", () => {
+    expect(cMajor.degreeName(7, { style: "technical" })).toBe("leading-tone");
+  });
+
+  it("solfege style", () => {
+    expect(cMajor.degreeName(1, { style: "solfege" })).toBe("do");
+    expect(cMajor.degreeName(5, { style: "solfege" })).toBe("sol");
+  });
+
+  it("diatonic style", () => {
+    expect(cMajor.degreeName(3, { style: "diatonic" })).toBe("3rd");
+    expect(cMajor.degreeName(7, { style: "diatonic" })).toBe("7th");
   });
 });

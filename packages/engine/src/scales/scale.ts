@@ -3,6 +3,8 @@ import type { Pitch } from "../primitives/pitch.ts";
 import { intervalFactory } from "../primitives/interval.ts";
 import { pitchArithmetic, pitchFactory } from "../primitives/pitch.ts";
 import { Accidental, NATURAL_PC, NoteLetter } from "../index.ts";
+import { scaleDegreeName } from "./degree-names.ts";
+import type { DegreeNameOptions } from "./degree-names.ts";
 
 // ---------------------------------------------------------------------------
 // Scale pattern types (the "recipe" — key-agnostic)
@@ -103,6 +105,16 @@ export abstract class Scale {
    * enharmonic equivalence applied).
    */
   abstract contains(pitch: Pitch): boolean;
+
+  /**
+ * Return the functional name for a scale degree (1-based).
+ * Supports wrapping: degree(8) → "tonic", degree(9) → "supertonic".
+ *
+ * @example C major.degreeName(1) → "tonic"
+ * @example C major.degreeName(5) → "dominant"
+ * @example C major.degreeName(7) → "leading-tone"
+ */
+  abstract degreeName(n: number, options?: DegreeNameOptions): string;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,6 +232,13 @@ class ConcreteScale extends Scale {
 
   contains(pitch: Pitch): boolean {
     return this._pcSet.has(pitch.pitchClass);
+  }
+
+  degreeName(n: number, options?: DegreeNameOptions): string {
+    if (n < 1) throw new RangeError(`Scale degree must be ≥ 1, got ${n}`);
+    const len = this.pattern.intervals.length;
+    const idx = (n - 1) % len;
+    return scaleDegreeName(idx, this.pattern.intervals[idx] ?? 0, this.pattern.intervals[idx - 1] ?? 0, options);
   }
 }
 
