@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+/* ── Studio Dark Design System ──────────────────────────────────────────────
+   Dark-first: all tokens here are the dark (default) palette.
+   Light mode: add `.light` class to <html>.
+   Fonts: Inter (UI) + JetBrains Mono (labels) — loaded in root.tsx <head>.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Fonts ── */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+
+  /* ── Border radius — Studio spec: crisp, not bubbly ── */
+  --radius-sm:   0.125rem;  /* 2px  */
+  --radius:      0.25rem;   /* 4px  — components default */
+  --radius-md:   0.375rem;  /* 6px  */
+  --radius-lg:   0.5rem;    /* 8px  */
+  --radius-xl:   0.75rem;   /* 12px */
+  --radius-full: 9999px;    /* pill — note markers */
+
+  /* ── Spacing extensions ── */
+  --spacing-fret: 4rem; /* 64px — fretboard fret-width unit */
+
+  /* ── Studio Dark — semantic UI tokens (shadcn surface) ── */
+  --color-background:         #0e1417;   /* surface         */
+  --color-foreground:         #dde3e7;   /* on-surface      */
+
+  --color-card:               #161d1f;   /* surface-container-low  */
+  --color-card-foreground:    #dde3e7;
+
+  --color-popover:            #1a2123;   /* surface-container      */
+  --color-popover-foreground: #dde3e7;
+
+  --color-primary:            #a8e8ff;   /* primary (soft blue — readable on dark) */
+  --color-primary-foreground: #003642;   /* on-primary                             */
+
+  --color-secondary:          #ffd393;   /* secondary (warm amber)  */
+  --color-secondary-foreground: #432c00; /* on-secondary            */
+
+  --color-muted:              #1a2123;   /* surface-container       */
+  --color-muted-foreground:   #859398;   /* outline                 */
+
+  --color-accent:             #3efe8a;   /* tertiary (emerald)      */
+  --color-accent-foreground:  #003918;   /* on-tertiary             */
+
+  --color-destructive:        #ffb4ab;   /* error                   */
+  --color-destructive-foreground: #690005;
+
+  --color-border:             #3c494e;   /* outline-variant — 1px lines */
+  --color-input:              #080f12;   /* surface-container-lowest — recessed */
+  --color-ring:               #3cd7ff;   /* primary-fixed-dim — focus ring      */
+
+  /* ── Full M3 surface scale (for layout/elevation use) ── */
+  --color-surface:                    #0e1417;
+  --color-surface-dim:                #0e1417;
+  --color-surface-bright:             #333a3d;
+  --color-surface-container-lowest:   #080f12;
+  --color-surface-container-low:      #161d1f;
+  --color-surface-container:          #1a2123;
+  --color-surface-container-high:     #242b2e;
+  --color-surface-container-highest:  #2f3639;
+  --color-on-surface:                 #dde3e7;
+  --color-on-surface-variant:         #bbc9cf;
+  --color-outline:                    #859398;
+  --color-outline-variant:            #3c494e;
+
+  /* ── Primary/secondary/tertiary full scales ── */
+  --color-primary-container:          #00d4ff;   /* Electric Blue — highlight */
+  --color-on-primary-container:       #00586b;
+  --color-inverse-primary:            #00677e;
+
+  --color-secondary-container:        #fdaf00;   /* Neon Amber — highlight */
+  --color-on-secondary-container:     #694600;
+
+  --color-tertiary:                   #3efe8a;
+  --color-on-tertiary:                #003918;
+  --color-tertiary-container:         #00e073;   /* Emerald — highlight */
+  --color-on-tertiary-container:      #005d2c;
+
+  --color-error:                      #ffb4ab;
+  --color-on-error:                   #690005;
+  --color-error-container:            #93000a;
+  --color-on-error-container:         #ffdad6;
+
+  /* ── Semantic accent palette (musical roles) ── */
+  --color-electric-blue: #00d4ff;   /* root notes */
+  --color-neon-amber:    #fdaf00;   /* intervals / tension */
+  --color-emerald:       #00e073;   /* scale highlights / "correct" */
+
+  /* ── Fretboard-specific tokens ── */
+  --color-fret-bg:     #0e1417;   /* neck surface */
+  --color-fret-wood:   #161d1f;   /* surface-container-low */
+  --color-fret-metal:  #3c494e;   /* 1px fret wire (outline-variant) */
+  --color-string:      #ffba43;   /* secondary-fixed-dim — wound string gold */
+  --color-nut:         #bbc9cf;   /* on-surface-variant — bone nut */
+
+  /* ── Dot colors — semantic musical meaning ── */
+  --color-dot-root:    #00d4ff;   /* Electric Blue  — root note  */
+  --color-dot-third:   #fdaf00;   /* Neon Amber     — third      */
+  --color-dot-fifth:   #00e073;   /* Emerald        — fifth      */
+  --color-dot-seventh: #ffd393;   /* secondary      — seventh    */
+  --color-dot-other:   #859398;   /* outline        — other      */
+}
+
+/* ── Light mode overrides ────────────────────────────────────────────────────
+   Add `.light` to <html> — applied when user explicitly picks light or their
+   system preference is light.  Fretboard tokens stay dark (instruments are
+   always dark; it would look wrong otherwise).
+   ─────────────────────────────────────────────────────────────────────────── */
+.light {
+  --color-background:           #f0f4f6;
+  --color-foreground:           #161d1f;
+  --color-card:                 #ffffff;
+  --color-card-foreground:      #161d1f;
+  --color-popover:              #ffffff;
+  --color-popover-foreground:   #161d1f;
+  --color-primary:              #00677e;   /* inverse-primary */
+  --color-primary-foreground:   #ffffff;
+  --color-secondary:            #614000;   /* on-secondary-fixed-variant */
+  --color-secondary-foreground: #ffffff;
+  --color-muted:                #dce4e8;
+  --color-muted-foreground:     #4a5c62;
+  --color-accent:               #005226;   /* on-tertiary-fixed-variant */
+  --color-accent-foreground:    #ffffff;
+  --color-destructive:          #93000a;   /* error-container */
+  --color-destructive-foreground: #ffdad6;
+  --color-border:               #b0bfc5;
+  --color-input:                #e4ecef;
+  --color-ring:                 #00677e;
+
+  --color-surface:                   #f0f4f6;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #eaf0f3;
+  --color-surface-container:         #e4ecef;
+  --color-surface-container-high:    #dce4e8;
+  --color-surface-container-highest: #d6dee2;
+  --color-on-surface:                #161d1f;
+  --color-on-surface-variant:        #3c494e;
+  --color-outline:                   #6b7c82;
+  --color-outline-variant:           #b0bfc5;
+
+  /* Fretboard stays dark — instruments always look "studio" */
+  --color-fret-bg:     #0e1417;
+  --color-fret-wood:   #161d1f;
+  --color-fret-metal:  #3c494e;
+  --color-string:      #ffba43;
+  --color-nut:         #bbc9cf;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+    outline-color: var(--color-ring);
+  }
+
+  html {
+    /* Dark is default — no class needed */
+    color-scheme: dark;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Typography scale — matches Studio spec */
+  h1 {
+    font-size: 2.5rem;   /* 40px */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 2rem;     /* 32px */
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  /* Monospace labels — fret numbers, interval names, pitch classes */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;  /* 12px */
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
