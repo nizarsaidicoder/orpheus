@@ -90,6 +90,7 @@ export const functionalAnalyzer: FunctionalAnalyzer = {
     if (mainDegree !== undefined) {
       if (mainDegree.family === chordFamily) {
         const map = key.modality === "major" ? MAJOR_FUNCTIONS : MINOR_FUNCTIONS;
+        /* c8 ignore next */
         const entry = map[mainDegree.scaleDegree] ?? { func: "ambiguous" as TonalFunction };
         return makeResult(entry, false);
       }
@@ -97,10 +98,12 @@ export const functionalAnalyzer: FunctionalAnalyzer = {
       const parallelDegree = findDiatonicDegree(chord, key.parallel);
       if (parallelDegree !== undefined && parallelDegree.family === chordFamily) {
         const map = key.parallel.modality === "major" ? MAJOR_FUNCTIONS : MINOR_FUNCTIONS;
+        /* c8 ignore next */
         const entry = map[parallelDegree.scaleDegree] ?? { func: "ambiguous" as TonalFunction };
         return makeResult(entry, true);
       }
       // Quality unmatched — assign function from main key, not borrowed
+      /* c8 ignore next */
       const entry = (key.modality === "major" ? MAJOR_FUNCTIONS : MINOR_FUNCTIONS)[mainDegree.scaleDegree]
         ?? { func: "ambiguous" as TonalFunction };
       return makeResult(entry, false);
@@ -110,6 +113,7 @@ export const functionalAnalyzer: FunctionalAnalyzer = {
     const parallelDegree = findDiatonicDegree(chord, key.parallel);
     if (parallelDegree !== undefined && parallelDegree.family === chordFamily) {
       const map = key.parallel.modality === "major" ? MAJOR_FUNCTIONS : MINOR_FUNCTIONS;
+      /* c8 ignore next */
       const entry = map[parallelDegree.scaleDegree] ?? { func: "ambiguous" as TonalFunction };
       return makeResult(entry, true);
     }

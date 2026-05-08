@@ -169,3 +169,31 @@ describe("Scale.transpose()", () => {
     expect(dMajor.pattern.intervals).toEqual(MAJOR_PATTERN.intervals);
   });
 });
+
+describe("Scale.intervalToDegree() — beyond scale length", () => {
+  it("degree 8 wraps to degree 1 + one octave (C major)", () => {
+    const interval = cMajor.intervalToDegree(8);
+    expect(interval.semitones).toBe(12); // octave
+  });
+
+  it("degree 9 wraps to degree 2 + one octave (D above C4)", () => {
+    const interval = cMajor.intervalToDegree(9);
+    expect(interval.semitones).toBe(14); // M9
+  });
+
+  it("throws RangeError for degree < 1", () => {
+    expect(() => cMajor.intervalToDegree(0)).toThrow(RangeError);
+  });
+});
+
+describe("Scale.degree() — beyond scale length", () => {
+  it("degree 8 wraps to octave above root (C5 for C4 major)", () => {
+    const pitch = cMajor.degree(8);
+    expect(pitch.midi).toBe(72); // C5
+  });
+
+  it("degree 9 = D above the octave", () => {
+    const pitch = cMajor.degree(9);
+    expect(pitch.midi).toBe(74); // D5
+  });
+});

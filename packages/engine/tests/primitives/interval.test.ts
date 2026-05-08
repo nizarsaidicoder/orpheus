@@ -32,6 +32,22 @@ describe("IntervalFactory", () => {
       expect(() => intervalFactory.fromNumberAndQuality(5, "major")).toThrow(TypeError);
     });
 
+    it("builds doubly-diminished fifth", () => {
+      const i = intervalFactory.fromNumberAndQuality(5, "doubly-diminished");
+      expect(i.quality).toBe("doubly-diminished");
+      expect(i.semitones).toBe(5);
+    });
+
+    it("builds doubly-augmented fourth", () => {
+      const i = intervalFactory.fromNumberAndQuality(4, "doubly-augmented");
+      expect(i.quality).toBe("doubly-augmented");
+      expect(i.semitones).toBe(7);
+    });
+
+    it("throws TypeError for minor fifth (minor on perfect-type)", () => {
+      expect(() => intervalFactory.fromNumberAndQuality(5, "minor")).toThrow(TypeError);
+    });
+
     it("sets isCompound: true for M9", () => {
       const i = intervalFactory.fromNumberAndQuality(9, "major");
       expect(i.isCompound).toBe(true);
@@ -74,6 +90,18 @@ describe("IntervalFactory", () => {
       expect(i.quality).toBe("major");
       expect(i.isCompound).toBe(true);
     });
+
+    it("6 semitones with preferFlat:true → diminished fifth (d5)", () => {
+      const i = intervalFactory.fromSemitones(6, true);
+      expect(i.number).toBe(5);
+      expect(i.quality).toBe("diminished");
+    });
+
+    it("out-of-range semitones → clamped to nearest valid interval", () => {
+      const i = intervalFactory.fromSemitones(99);
+      expect(i).toBeDefined();
+      expect(i.number).toBeGreaterThan(0);
+    });
   });
 });
 
@@ -105,6 +133,36 @@ describe("IntervalArithmetic", () => {
     it("result number = a.number + b.number - 1", () => {
       const result = intervalArithmetic.add(P5, P4);
       expect(result.number).toBe(P5.number + P4.number - 1);
+    });
+
+    it("add(dd2, dd2) → doubly-diminished third (imperfect offset ≤ -3)", () => {
+      const dd2 = intervalFactory.fromNumberAndQuality(2, "doubly-diminished");
+      const result = intervalArithmetic.add(dd2, dd2);
+      expect(result.number).toBe(3);
+      expect(result.quality).toBe("doubly-diminished");
+    });
+
+    it("add(dd4, dd2) → doubly-diminished fifth (perfect offset ≤ -2)", () => {
+      const dd4 = intervalFactory.fromNumberAndQuality(4, "doubly-diminished");
+      const dd2 = intervalFactory.fromNumberAndQuality(2, "doubly-diminished");
+      const result = intervalArithmetic.add(dd4, dd2);
+      expect(result.number).toBe(5);
+      expect(result.quality).toBe("doubly-diminished");
+    });
+
+    it("add(A2, A2) → doubly-augmented third (imperfect offset ≥ 2)", () => {
+      const a2 = intervalFactory.fromNumberAndQuality(2, "augmented");
+      const result = intervalArithmetic.add(a2, a2);
+      expect(result.number).toBe(3);
+      expect(result.quality).toBe("doubly-augmented");
+    });
+
+    it("add(A4, A1) → doubly-augmented fourth (perfect offset ≥ 2)", () => {
+      const a4 = intervalFactory.fromNumberAndQuality(4, "augmented");
+      const a1 = intervalFactory.fromNumberAndQuality(1, "augmented");
+      const result = intervalArithmetic.add(a4, a1);
+      expect(result.number).toBe(4);
+      expect(result.quality).toBe("doubly-augmented");
     });
   });
 

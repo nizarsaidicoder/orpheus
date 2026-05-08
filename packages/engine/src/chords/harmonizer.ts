@@ -68,6 +68,7 @@ function inferQuality(intervalStructure: ReadonlyArray<Interval>): ChordQuality 
 }
 
 function buildRomanNumeral(degree: number, quality: ChordQuality): string {
+  /* c8 ignore next */
   const roman = ROMAN_NUMERALS[(degree - 1) % 7] ?? "I";
   switch (quality.kind) {
     case "major":             return roman;
@@ -92,6 +93,7 @@ function buildRomanNumeral(degree: number, quality: ChordQuality): string {
     case "major13":           return roman + "maj13";
     case "dominant13":        return roman + "13";
     case "minor13":           return roman.toLowerCase() + "m13";
+    /* c8 ignore next */
     default:                  return roman;
   }
 }

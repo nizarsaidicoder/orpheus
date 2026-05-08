@@ -75,10 +75,7 @@ export const modulationFinder: ModulationFinder = {
     const dist = circleOfFifths.distance(from, to);
     const pivots = modulationFinder.pivotChords(from, to);
     if (pivots.length > 0) {
-      const pivot = pivots[0];
-      const step = pivot !== undefined
-        ? makePivotStep(to, pivot, from)
-        : makePivotStepNoChord(to, from);
+      const step = makePivotStep(to, pivots[0]!, from);
       return { from, to, steps: [step], cost: dist };
     }
     const step = makeDirectStep(to);

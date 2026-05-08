@@ -69,7 +69,7 @@ export const keyDetector: KeyDetector = {
 
     // Build pitch class frequency vector
     const counts = new Array<number>(12).fill(0);
-    for (const p of pitches) counts[p.pitchClass] = (counts[p.pitchClass] ?? 0) + 1;
+    for (const p of pitches) counts[p.pitchClass]!++;
 
     // Compute correlations for all 24 keys
     const correlations: Array<{ key: Key; r: number }> = [];
@@ -86,9 +86,8 @@ export const keyDetector: KeyDetector = {
     correlations.sort((a, b) => b.r - a.r);
 
     // Normalize: map r ∈ [-1, 1] → confidence ∈ [0, 1]
-    const maxR = correlations[0] !== undefined ? correlations[0].r : 0;
-    const minR = correlations[correlations.length - 1] !== undefined
-      ? correlations[correlations.length - 1]!.r : -1;
+    const maxR = correlations[0]!.r;
+    const minR = correlations[correlations.length - 1]!.r;
     const range = maxR - minR || 1;
 
     return correlations.map(({ key, r }) => ({

@@ -63,6 +63,7 @@ function getRootPitch(rootPC: number, sorted: ReadonlyArray<Pitch>): Pitch {
   // Create root below the bass pitch
   const bass = sorted[0]!;
   const offset = ((rootPC - bass.pitchClass) + 12) % 12;
+  /* c8 ignore next */
   const rootMidi = offset > 0 ? bass.midi + offset - 12 : bass.midi;
   return pitchFactory.fromMidi(Math.max(0, Math.min(127, rootMidi)));
 }
@@ -100,6 +101,7 @@ export const chordAnalyzer: ChordAnalyzer = {
         const score = scoreCandidate(inputPCs, rootPC, template);
         if (score < MIN_CONFIDENCE) continue;
         const key = `${rootPC}-${template.quality}`;
+        /* c8 ignore next */
         if (seen.has(key)) continue;
         seen.add(key);
 

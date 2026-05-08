@@ -118,4 +118,12 @@ describe("CircleOfFifths.pathBetween()", () => {
     const path = circleOfFifths.pathBetween(CMajor, DMajor);
     expect(path[path.length - 1]!.key.tonic.pitchClass).toBe(2); // D
   });
+
+  it("C to F takes CCW path and returns [C, F]", () => {
+    // F major is 1 step CCW from C major (subdominant direction)
+    const path = circleOfFifths.pathBetween(CMajor, FMajor);
+    expect(path).toHaveLength(2);
+    expect(path[0]!.key.tonic.pitchClass).toBe(0); // C
+    expect(path[1]!.key.tonic.pitchClass).toBe(5); // F
+  });
 });

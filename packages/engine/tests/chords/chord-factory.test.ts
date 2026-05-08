@@ -172,6 +172,17 @@ describe("ChordFactory.build() — alterations", () => {
     expect(cMaj7noFifth.pitches[1]!.midi).toBe(64); // E4 (M3)
     expect(cMaj7noFifth.pitches[2]!.midi).toBe(71); // B4 (M7)
   });
+
+  it("options.alterations replaces existing interval (if-branch of applyAlterations)", () => {
+    // G dominant7 = [M3, P5, m7]; altering degree 5 sharp replaces P5 (7 semitones) with A5 (8)
+    const g7sharp5 = chordFactory.build({
+      root: G4,
+      quality: { kind: "dominant7" },
+      alterations: [{ degree: 5, direction: "sharp" }],
+    });
+    // A5 above G4 = 67 + 8 = 75
+    expect(g7sharp5.pitches.some(p => p.midi === 75)).toBe(true);
+  });
 });
 
 describe("ChordFactory.invert()", () => {

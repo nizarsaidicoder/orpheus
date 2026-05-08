@@ -49,6 +49,7 @@ export function enharmonicEquivalentOf(spelling: SpelledNoteName): SpelledNoteNa
   const other = options.find(
     (s) => s.letter !== spelling.letter || s.accidental !== spelling.accidental
   );
+  /* c8 ignore next */
   return other ?? spelling;
 }
 

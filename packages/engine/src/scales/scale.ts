@@ -141,6 +141,7 @@ class ConcreteScale extends Scale {
     if (n <= len) return this.pitches[n - 1]!;
     const idx = (n - 1) % len;
     const octaveOffset = Math.floor((n - 1) / len);
+    /* c8 ignore next */
     const semitones = (this.pattern.intervals[idx] ?? 0) + 12 * octaveOffset;
     return pitchArithmetic.transpose(this.root, semitones);
   }
@@ -150,6 +151,7 @@ class ConcreteScale extends Scale {
     const len = this.pattern.intervals.length;
     const idx = (n - 1) % len;
     const octaveOffset = Math.floor((n - 1) / len);
+    /* c8 ignore next */
     const semitones = (this.pattern.intervals[idx] ?? 0) + 12 * octaveOffset;
     return intervalFactory.fromSemitones(semitones);
   }

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
+import { NoteLetter, Accidental } from "@orpheus/engine";
 import { fretboardFactory } from "../src/fretboard/fretboard-factory.ts";
 import { STANDARD_TUNING, DROP_D } from "../src/tunings/standard-tunings.ts";
-import { tuningFactory } from "../src/tunings/tuning-factory.ts";
+import { tuningFactory, tuningRegistry } from "../src/tunings/tuning-factory.ts";
 
 describe("Fretboard", () => {
   const fb = fretboardFactory.build(STANDARD_TUNING);
@@ -93,5 +94,49 @@ describe("Fretboard", () => {
       expect(fb4.stringCount).toBe(4);
       expect(fb4.pitchAt(4, 0).midi).toBe(43); // lowest string
     });
+
+    it("fromSpellings builds tuning from note spellings + octaves", () => {
+      // Standard tuning: E2 A2 D3 G3 B3 E4
+      const spellings = [
+        { letter: NoteLetter.E, accidental: Accidental.Natural },
+        { letter: NoteLetter.A, accidental: Accidental.Natural },
+        { letter: NoteLetter.D, accidental: Accidental.Natural },
+        { letter: NoteLetter.G, accidental: Accidental.Natural },
+        { letter: NoteLetter.B, accidental: Accidental.Natural },
+        { letter: NoteLetter.E, accidental: Accidental.Natural },
+      ];
+      const octaves = [2, 2, 3, 3, 3, 4];
+      const tuning = tuningFactory.fromSpellings("spelled-standard", spellings, octaves);
+      expect(tuning.strings).toHaveLength(6);
+      const fb2 = fretboardFactory.build(tuning);
+      expect(fb2.pitchAt(6, 0).midi).toBe(40); // low E2
+      expect(fb2.pitchAt(1, 0).midi).toBe(64); // high E4
+    });
+  });
+});
+
+describe("tuningRegistry", () => {
+  it("standard tuning is registered", () => {
+    const t = tuningRegistry.get("standard");
+    expect(t).toBeDefined();
+  });
+
+  it("get is case-insensitive", () => {
+    expect(tuningRegistry.get("STANDARD")).toBeDefined();
+    expect(tuningRegistry.get("Standard")).toBeDefined();
+  });
+
+  it("all() returns at least the preset tunings", () => {
+    expect(tuningRegistry.all().length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("register and retrieve custom tuning", () => {
+    const custom = tuningFactory.fromMidiArray("my-custom", [40, 45, 50, 55, 59, 64]);
+    tuningRegistry.register(custom);
+    expect(tuningRegistry.get("my-custom")).toBe(custom);
+  });
+
+  it("returns undefined for unknown tuning name", () => {
+    expect(tuningRegistry.get("nonexistent-xyz")).toBeUndefined();
   });
 });

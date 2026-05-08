@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { harmonizer } from "../../src/chords/harmonizer.ts";
 import { scaleFactory } from "../../src/scales/scale.ts";
-import { MAJOR_PATTERN } from "../../src/scales/diatonic.ts";
+import { MAJOR_PATTERN, HARMONIC_MINOR_PATTERN } from "../../src/scales/diatonic.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
 
 const C4 = pitchFactory.fromMidi(60);
@@ -152,5 +152,125 @@ describe("Harmonizer memoization", () => {
     const d5 = harmonizer.degreeChord(cMajor, 5, "triad");
     const all = harmonizer.harmonize(cMajor, "triad");
     expect(d5).toBe(all[4]!.chord);
+  });
+});
+
+describe("Harmonizer.harmonize() — ninth extension (roman numeral coverage)", () => {
+  const degrees = harmonizer.harmonize(cMajor, "ninth");
+
+  it("degree 1 ninth = Cmaj9 (Imaj9)", () => {
+    expect(degrees[0]!.chord.quality.kind).toBe("major9");
+    expect(degrees[0]!.romanNumeral).toBe("Imaj9");
+  });
+
+  it("degree 5 ninth = G9 (V9, dominant9)", () => {
+    expect(degrees[4]!.chord.quality.kind).toBe("dominant9");
+    expect(degrees[4]!.romanNumeral).toBe("V9");
+  });
+
+  it("degree 2 ninth = Dm9 (iim9)", () => {
+    expect(degrees[1]!.chord.quality.kind).toBe("minor9");
+    expect(degrees[1]!.romanNumeral).toBe("iim9");
+  });
+
+  it("degree 7 ninth = B unknown-signature (falls back to major, uses default roman)", () => {
+    // B + diatonic stack: intervals 3,6,10,13 — not in SIGNATURE_QUALITY → "major" fallback
+    expect(degrees[6]!.chord.quality.kind).toBe("major");
+  });
+});
+
+describe("Harmonizer.harmonize() — eleventh extension (roman numeral coverage)", () => {
+  const degrees = harmonizer.harmonize(cMajor, "eleventh");
+
+  it("degree 1 eleventh = Cmaj11", () => {
+    expect(degrees[0]!.chord.quality.kind).toBe("major11");
+    expect(degrees[0]!.romanNumeral).toBe("Imaj11");
+  });
+
+  it("degree 5 eleventh = G11 (dominant11)", () => {
+    expect(degrees[4]!.chord.quality.kind).toBe("dominant11");
+    expect(degrees[4]!.romanNumeral).toBe("V11");
+  });
+
+  it("degree 2 eleventh = Dm11 (minor11)", () => {
+    expect(degrees[1]!.chord.quality.kind).toBe("minor11");
+    expect(degrees[1]!.romanNumeral).toBe("iim11");
+  });
+
+  it("degree 7 eleventh falls back to major (diatonic intervals don't match half-dim11)", () => {
+    expect(degrees[6]!.chord.quality.kind).toBe("major");
+  });
+});
+
+describe("Harmonizer.harmonize() — thirteenth extension (roman numeral coverage)", () => {
+  const degrees = harmonizer.harmonize(cMajor, "thirteenth");
+
+  it("degree 1 thirteenth = Cmaj13", () => {
+    expect(degrees[0]!.chord.quality.kind).toBe("major13");
+    expect(degrees[0]!.romanNumeral).toBe("Imaj13");
+  });
+
+  it("degree 5 thirteenth = G13 (dominant13)", () => {
+    expect(degrees[4]!.chord.quality.kind).toBe("dominant13");
+    expect(degrees[4]!.romanNumeral).toBe("V13");
+  });
+
+  it("degree 2 thirteenth = Dm13 (minor13)", () => {
+    expect(degrees[1]!.chord.quality.kind).toBe("minor13");
+    expect(degrees[1]!.romanNumeral).toBe("iim13");
+  });
+});
+
+describe("Harmonizer.harmonize() — custom scale (half-diminished9 and half-dim11 coverage)", () => {
+  // Custom 7-note scale with intervals [0,2,3,5,6,8,10]:
+  // Degree 1 ninth  → intervals 3,6,10,14 = half-diminished9
+  // Degree 1 eleventh → intervals 3,6,10,14,17 = half-diminished11
+  const customPattern = Object.freeze({ name: "custom-test", category: "exotic" as const, intervals: [0, 2, 3, 5, 6, 8, 10] as const });
+  const C4 = pitchFactory.fromMidi(60);
+  const customScale = scaleFactory.build(customPattern as never, C4);
+
+  it("degree 1 ninth = half-diminished9 (line 87 coverage)", () => {
+    const degrees = harmonizer.harmonize(customScale, "ninth");
+    expect(degrees[0]!.chord.quality.kind).toBe("half-diminished9");
+    expect(degrees[0]!.romanNumeral).toBe("iø9");
+  });
+
+  it("degree 1 eleventh = half-diminished11 (line 91 coverage)", () => {
+    const degrees = harmonizer.harmonize(customScale, "eleventh");
+    expect(degrees[0]!.chord.quality.kind).toBe("half-diminished11");
+    expect(degrees[0]!.romanNumeral).toBe("iø11");
+  });
+});
+
+describe("Harmonizer.harmonize() — harmonic minor (augmented / dim7 / mM7 chords)", () => {
+  const C4 = pitchFactory.fromMidi(60);
+  const cHarmonicMinor = scaleFactory.build(HARMONIC_MINOR_PATTERN, C4);
+
+  describe("triads", () => {
+    const triads = harmonizer.harmonize(cHarmonicMinor, "triad");
+
+    it("degree 3 = augmented triad (IIIaug)", () => {
+      expect(triads[2]!.chord.quality.kind).toBe("augmented");
+      expect(triads[2]!.romanNumeral).toBe("IIIaug");
+    });
+  });
+
+  describe("seventh chords", () => {
+    const sevenths = harmonizer.harmonize(cHarmonicMinor, "seventh");
+
+    it("degree 1 = minor-major7 (imM7)", () => {
+      expect(sevenths[0]!.chord.quality.kind).toBe("minor-major7");
+      expect(sevenths[0]!.romanNumeral).toBe("iM7");
+    });
+
+    it("degree 3 = augmented-major7 (III+M7)", () => {
+      expect(sevenths[2]!.chord.quality.kind).toBe("augmented-major7");
+      expect(sevenths[2]!.romanNumeral).toBe("III+M7");
+    });
+
+    it("degree 7 = diminished7 (vii°7)", () => {
+      expect(sevenths[6]!.chord.quality.kind).toBe("diminished7");
+      expect(sevenths[6]!.romanNumeral).toBe("vii°7");
+    });
   });
 });

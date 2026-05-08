@@ -74,4 +74,9 @@ describe("TritoneSubstitution.isTritoneSub()", () => {
     const f7 = chordFactory.seventh(F4, "dominant7");
     expect(tritoneSubstitution.isTritoneSub(f7, CMajor)).toBe(false);
   });
+
+  it("non-dominant7 chord → false (early return at quality check)", () => {
+    const cMaj = chordFactory.triad(C4, "major");
+    expect(tritoneSubstitution.isTritoneSub(cMaj, CMajor)).toBe(false);
+  });
 });

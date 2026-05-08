@@ -62,6 +62,13 @@ describe("RomanNumeralAnalyzer.parse()", () => {
     expect(() => romanNumeralAnalyzer.parse("X")).toThrow(SyntaxError);
     expect(() => romanNumeralAnalyzer.parse("")).toThrow(SyntaxError);
   });
+
+  it("unrecognized suffix falls back to major (uppercase) or minor (lowercase)", () => {
+    // 'Ixxx' — uppercase I with unknown suffix 'xxx' → quality falls back to 'major'
+    const t = romanNumeralAnalyzer.parse("Ixxx");
+    expect(t.degree).toBe("I");
+    expect(t.quality).toBe("major");
+  });
 });
 
 describe("RomanNumeralAnalyzer.render()", () => {

@@ -94,4 +94,23 @@ describe("FunctionalAnalyzer.analyze()", () => {
       expect(result.isBorrowed).toBe(false);
     }
   });
+
+  it("augmented chord on diatonic root, unmatched in parallel → returns main-key function, not borrowed", () => {
+    // C augmented: root C is in C major (degree 1), but 'augmented' quality doesn't match
+    // either C major degree-1 family ('major') or C minor degree-1 family ('minor')
+    // → falls through to line 104: returns main-key function without borrowed flag
+    const cAug = chordFactory.triad(C4, "augmented");
+    const result = functionalAnalyzer.analyze(cAug, CMajor);
+    expect(result.isBorrowed).toBe(false);
+    expect(result.function).toBeDefined();
+  });
+
+  it("chord with root outside both main and parallel keys → ambiguous, not borrowed", () => {
+    // C# (PC 1) is not in C major (0,2,4,5,7,9,11) nor in C minor (0,2,3,5,7,8,10)
+    const cSharp4 = pitchFactory.fromMidi(61);
+    const cSharpMaj = chordFactory.triad(cSharp4, "major");
+    const result = functionalAnalyzer.analyze(cSharpMaj, CMajor);
+    expect(result.function).toBe("ambiguous");
+    expect(result.isBorrowed).toBe(false);
+  });
 });

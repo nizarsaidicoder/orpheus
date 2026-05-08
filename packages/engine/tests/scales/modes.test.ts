@@ -75,4 +75,15 @@ describe("Scale.mode()", () => {
     expect(() => cMajor.mode(0)).toThrow(RangeError);
     expect(() => cMajor.mode(8)).toThrow(RangeError);
   });
+
+  it("mode() on scale without modes property uses fallback name", () => {
+    const customPattern = Object.freeze({
+      name: "my-exotic",
+      category: "exotic" as const,
+      intervals: [0, 2, 4, 5, 7, 9, 11] as const,
+    });
+    const custom = scaleFactory.build(customPattern as never, C4);
+    const modeScale = custom.mode(2);
+    expect(modeScale.pattern.name).toBe("mode-2-of-my-exotic");
+  });
 });

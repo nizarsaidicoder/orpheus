@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { inversionAnalyzer } from "../../src/chords/inversion.ts";
+import { inversionAnalyzer, rotatePitchesToBass } from "../../src/chords/inversion.ts";
 import { chordFactory } from "../../src/chords/chord-factory.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
 
@@ -57,6 +57,26 @@ describe("InversionAnalyzer.bassIndex()", () => {
 
   it("third inversion → 3", () => {
     expect(inversionAnalyzer.bassIndex(g7Inv3)).toBe(3);
+  });
+});
+
+describe("InversionAnalyzer.analyze() — edge cases", () => {
+  it("chord with empty pitches and no bassNote returns 'root'", () => {
+    const emptyChord = {
+      root: C4,
+      quality: { kind: "major" as const },
+      pitches: [] as never[],
+      inversion: "root" as const,
+      intervalStructure: [],
+    };
+    expect(inversionAnalyzer.analyze(emptyChord)).toBe("root");
+  });
+});
+
+describe("rotatePitchesToBass()", () => {
+  it("bassIndex 0 returns original array reference unchanged", () => {
+    const pitches = [C4, pitchFactory.fromMidi(64), pitchFactory.fromMidi(67)];
+    expect(rotatePitchesToBass(pitches, 0)).toBe(pitches);
   });
 });
 

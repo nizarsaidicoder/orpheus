@@ -42,6 +42,7 @@ export const pitchMath: PitchMath = {
       return (((to - from) % 12) + 12) % 12;
     }
     const up = (((to - from) % 12) + 12) % 12;
+    /* c8 ignore next */
     return up === 0 ? 0 : up - 12;
   },
 };

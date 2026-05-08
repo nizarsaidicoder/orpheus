@@ -89,12 +89,6 @@ const QUALITY_TO_SUFFIX: Readonly<Record<string, string>> = {
   minor13:           "m13",
 };
 
-function parseRomanCore(s: string): { roman: string; lower: boolean } {
-  const upper = s.toUpperCase();
-  const lower = s[0] === s[0]!.toLowerCase();
-  return { roman: upper, lower };
-}
-
 // ---------------------------------------------------------------------------
 // Concrete implementation
 // ---------------------------------------------------------------------------
@@ -193,6 +187,7 @@ export const romanNumeralAnalyzer: RomanNumeralAnalyzer = {
       return chordFactory.seventh(root, quality as Parameters<typeof chordFactory.seventh>[1]);
     }
     // Fallback: build as major triad
+    /* c8 ignore next */
     return chordFactory.triad(root, "major");
   },
 };

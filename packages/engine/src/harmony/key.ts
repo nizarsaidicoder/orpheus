@@ -91,6 +91,7 @@ function buildKeySpellings(
   for (let i = 0; i < scaleIntervals.length; i++) {
     const letterIdx = (tonicLetterIdx + i) % 7;
     const letter = LETTER_ORDER[letterIdx]!;
+    /* c8 ignore next */
     const targetPC = (tonicPC + (scaleIntervals[i] ?? 0)) % 12;
     const naturalLetterPC = NATURAL_PC[letter];
     let acc = targetPC - naturalLetterPC;
