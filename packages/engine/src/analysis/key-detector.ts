@@ -27,42 +27,52 @@ function pearsonCorrelation(a: number[], b: number[]): number {
   return num / Math.sqrt(denA * denB);
 }
 
-// 12 major keys (by signature 0..+11, mapped to circle position via tonic PC)
-// Keys in circle order from C (sig 0) clockwise: C,G,D,A,E,B,F#,Db,Ab,Eb,Bb,F
-const MAJOR_KEYS: ReadonlyArray<Key> = [
-  keyFactory.major(0),   // C  (tonic PC 0)
-  keyFactory.major(1),   // G  (tonic PC 7)
-  keyFactory.major(2),   // D  (tonic PC 2)
-  keyFactory.major(3),   // A  (tonic PC 9)
-  keyFactory.major(4),   // E  (tonic PC 4)
-  keyFactory.major(5),   // B  (tonic PC 11)
-  keyFactory.major(6),   // F# (tonic PC 6)
-  keyFactory.major(-5),  // Db (tonic PC 1)
-  keyFactory.major(-4),  // Ab (tonic PC 8)
-  keyFactory.major(-3),  // Eb (tonic PC 3)
-  keyFactory.major(-2),  // Bb (tonic PC 10)
-  keyFactory.major(-1),  // F  (tonic PC 5)
-];
-
-const MINOR_KEYS: ReadonlyArray<Key> = [
-  keyFactory.minor(0),   // A  (tonic PC 9)
-  keyFactory.minor(1),   // E  (tonic PC 4)
-  keyFactory.minor(2),   // B  (tonic PC 11)
-  keyFactory.minor(3),   // F# (tonic PC 6)
-  keyFactory.minor(4),   // C# (tonic PC 1)
-  keyFactory.minor(5),   // G# (tonic PC 8)
-  keyFactory.minor(6),   // D# (tonic PC 3)
-  keyFactory.minor(-5),  // Bb (tonic PC 10)
-  keyFactory.minor(-4),  // F  (tonic PC 5)
-  keyFactory.minor(-3),  // C  (tonic PC 0)
-  keyFactory.minor(-2),  // G  (tonic PC 7)
-  keyFactory.minor(-1),  // D  (tonic PC 2)
-];
 
 // ---------------------------------------------------------------------------
 // Concrete implementation
 // ---------------------------------------------------------------------------
 
+let _majorKeys: ReadonlyArray<Key> | undefined;
+let _minorKeys: ReadonlyArray<Key> | undefined;
+function getMajorKeys(): ReadonlyArray<Key> {
+  if (!_majorKeys) {
+    _majorKeys = [
+      keyFactory.major(0),   // C  (tonic PC 0)
+      keyFactory.major(1),   // G  (tonic PC 7)
+      keyFactory.major(2),   // D  (tonic PC 2)
+      keyFactory.major(3),   // A  (tonic PC 9)
+      keyFactory.major(4),   // E  (tonic PC 4)
+      keyFactory.major(5),   // B  (tonic PC 11)
+      keyFactory.major(6),   // F# (tonic PC 6)
+      keyFactory.major(-5),  // Db (tonic PC 1)
+      keyFactory.major(-4),  // Ab (tonic PC 8)
+      keyFactory.major(-3),  // Eb (tonic PC 3)
+      keyFactory.major(-2),  // Bb (tonic PC 10)
+      keyFactory.major(-1),  // F  (tonic PC 5)
+    ];
+  }
+  return _majorKeys;
+}
+
+function getMinorKeys(): ReadonlyArray<Key> {
+  if (!_minorKeys) {
+    _minorKeys = [
+      keyFactory.minor(0),   // A  (tonic PC 9)
+      keyFactory.minor(1),   // E  (tonic PC 4)
+      keyFactory.minor(2),   // B  (tonic PC 11)
+      keyFactory.minor(3),   // F# (tonic PC 6)
+      keyFactory.minor(4),   // C# (tonic PC 1)
+      keyFactory.minor(5),   // G# (tonic PC 8)
+      keyFactory.minor(6),   // D# (tonic PC 3)
+      keyFactory.minor(-5),  // Bb (tonic PC 10)
+      keyFactory.minor(-4),  // F  (tonic PC 5)
+      keyFactory.minor(-3),  // C  (tonic PC 0)
+      keyFactory.minor(-2),  // G  (tonic PC 7)
+      keyFactory.minor(-1),  // D  (tonic PC 2)
+    ];
+  }
+  return _minorKeys;
+}
 export const keyDetector: KeyDetector = {
   detect(pitches: ReadonlyArray<Pitch>): ReadonlyArray<KeyDetectionResult> {
     if (pitches.length === 0) return [];
@@ -73,11 +83,11 @@ export const keyDetector: KeyDetector = {
 
     // Compute correlations for all 24 keys
     const correlations: Array<{ key: Key; r: number }> = [];
-    for (const key of MAJOR_KEYS) {
+    for (const key of getMajorKeys()) {
       const profile = rotateProfile(KS_MAJOR, key.tonic.pitchClass);
       correlations.push({ key, r: pearsonCorrelation(counts, profile) });
     }
-    for (const key of MINOR_KEYS) {
+    for (const key of getMinorKeys()) {
       const profile = rotateProfile(KS_MINOR, key.tonic.pitchClass);
       correlations.push({ key, r: pearsonCorrelation(counts, profile) });
     }

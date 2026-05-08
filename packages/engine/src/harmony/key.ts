@@ -35,7 +35,7 @@ export interface Key {
    * The scale most naturally associated with this key.
    * Major → Ionian (major scale). Minor → Aeolian (natural minor).
    */
-  readonly naturalScale: Scale;
+  naturalScale: Scale;
 
   /**
    * The relative key: same key signature, different tonic and modality.
@@ -76,7 +76,7 @@ const LETTER_ORDER = [
   NoteLetter.G, NoteLetter.A, NoteLetter.B,
 ] as const;
 
-const NATURAL_PC: Readonly<Record<NoteLetter, number>> = {
+export const NATURAL_PC: Readonly<Record<NoteLetter, number>> = {
   [NoteLetter.C]: 0, [NoteLetter.D]: 2, [NoteLetter.E]: 4,
   [NoteLetter.F]: 5, [NoteLetter.G]: 7, [NoteLetter.A]: 9, [NoteLetter.B]: 11,
 };
@@ -110,9 +110,10 @@ function buildKeySpellings(
 class ConcreteKey implements Key {
   readonly tonic:        Pitch;
   readonly modality:     Modality;
-  readonly signature:    number;
-  readonly naturalScale: Scale;
+  readonly signature: number;
   private readonly _spellings: Record<number, SpelledNoteName>;
+  private _naturalScale: Scale | undefined;
+
 
   relative!:             Key;
   parallel!:             Key;
@@ -128,10 +129,6 @@ class ConcreteKey implements Key {
     this.modality = modality;
     this.signature = signature;
     this._spellings = spellings;
-    this.naturalScale = scaleFactory.build(
-      modality === "major" ? MAJOR_PATTERN : NATURAL_MINOR_PATTERN,
-      tonic,
-    );
   }
 
   spellPitchClass(pitchClass: number): SpelledNoteName {
@@ -140,6 +137,15 @@ class ConcreteKey implements Key {
     if (spelled !== undefined) return spelled;
     const options = ENHARMONIC_TABLE[pc]!;
     return this.signature >= 0 ? options[0]! : (options[1] ?? options[0]!);
+  }
+  get naturalScale(): Scale {
+    if (!this._naturalScale) {
+      this._naturalScale = scaleFactory.build(
+        this.modality === "major" ? MAJOR_PATTERN : NATURAL_MINOR_PATTERN,
+        this.tonic,
+      );
+    }
+    return this._naturalScale;
   }
 }
 

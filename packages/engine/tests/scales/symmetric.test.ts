@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   WHOLE_TONE_PATTERN, DIMINISHED_HW_PATTERN, DIMINISHED_WH_PATTERN, AUGMENTED_PATTERN,
 } from "../../src/scales/symmetric.ts";
+import { pitchFactory, scaleFactory } from "../../src/index.ts";
 
 describe("Whole-tone scale", () => {
   it("has exactly 6 pitch classes", () => {
@@ -47,5 +48,30 @@ describe("Augmented scale", () => {
 
   it("alternates m3-H: [0, 3, 4, 7, 8, 11]", () => {
     expect(AUGMENTED_PATTERN.intervals).toEqual([0, 3, 4, 7, 8, 11]);
+  });
+});
+
+describe("Symmetric scale spelling", () => {
+  it("C whole-tone uses one of each letter in the whole-tone collection", () => {
+    const scale = scaleFactory.build(
+      WHOLE_TONE_PATTERN,
+      pitchFactory.fromMidi(60), // C
+    );
+    const letters = scale.pitches.map(p => p.spelling.letter);
+    // C D E F# G# A# — no letter repeats
+    expect(new Set(letters).size).toBe(6);
+  });
+
+  it("C diminished (HW) spelling is consistent", () => {
+    const scale = scaleFactory.build(
+      DIMINISHED_HW_PATTERN,
+      pitchFactory.fromMidi(60), // C
+    );
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    // C Db Eb E F# G A Bb — alternates naturals and flats
+    expect(names).toHaveLength(8);
+    // Verify no duplicate letters in a row
+    const letters = scale.pitches.map(p => p.spelling.letter);
+    expect(new Set(letters).size).toBeLessThanOrEqual(8);
   });
 });

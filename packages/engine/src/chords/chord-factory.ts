@@ -1,9 +1,10 @@
 import type { Pitch } from "../primitives/pitch.ts";
 import type { Interval } from "../primitives/interval.ts";
-import { pitchArithmetic } from "../primitives/pitch.ts";
+import { pitchArithmetic, pitchFactory } from "../primitives/pitch.ts";
 import { intervalFactory } from "../primitives/interval.ts";
 import type { Chord, ChordAlteration, ChordQuality } from "./chord.ts";
 import { rotatePitchesToBass } from "./inversion.ts";
+import { Accidental, NoteLetter } from "../index.ts";
 
 /**
  * Configuration bag for building any chord type.
@@ -199,7 +200,37 @@ function applyAlterations(
 }
 
 function buildPitches(root: Pitch, intervalStructure: ReadonlyArray<Interval>): ReadonlyArray<Pitch> {
-  return [root, ...intervalStructure.map(i => pitchArithmetic.transpose(root, i.semitones))];
+  // Build each pitch using its Interval's diatonic number to get the correct letter
+  return [root, ...intervalStructure.map(i => {
+    // Add diatonic steps to get the target letter
+    const targetLetter = addDiatonicSteps(root.spelling.letter, i.number - 1);
+
+    // What's the semitone offset of the natural note at this letter?
+    const naturalPc: Record<NoteLetter, number> = {
+      [NoteLetter.C]: 0, [NoteLetter.D]: 2, [NoteLetter.E]: 4,
+      [NoteLetter.F]: 5, [NoteLetter.G]: 7, [NoteLetter.A]: 9, [NoteLetter.B]: 11
+    };
+    const rootPc = naturalPc[root.spelling.letter] + root.spelling.accidental;
+    const targetNaturalPc = naturalPc[targetLetter];
+
+    // Calculate the accidental needed to match the interval's semitones
+    const targetMidi = root.midi + i.semitones;
+    const targetOctave = root.octave + Math.floor((root.spelling.letter + i.number - 1) / 7);
+    const targetNaturalMidi = (targetOctave + 1) * 12 + targetNaturalPc;
+    const neededAccidental = targetMidi - targetNaturalMidi;
+
+    return pitchFactory.fromSpelling(
+      { letter: targetLetter, accidental: neededAccidental as Accidental },
+      targetOctave
+    );
+  })];
+}
+
+/** Add `steps` diatonic steps to a letter (C+2=E, A+2=B, G+1=A) */
+function addDiatonicSteps(start: NoteLetter, steps: number): NoteLetter {
+  const letters = [NoteLetter.C, NoteLetter.D, NoteLetter.E, NoteLetter.F, NoteLetter.G, NoteLetter.A, NoteLetter.B];
+  const idx = letters.indexOf(start);
+  return letters[(idx + steps) % 7]!;
 }
 
 function applyInversion(pitches: ReadonlyArray<Pitch>, bassIndex: number): ReadonlyArray<Pitch> {

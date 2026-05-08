@@ -5,18 +5,53 @@ import {
   HARMONIC_MINOR_PATTERN,
   MELODIC_MINOR_PATTERN,
 } from "../../src/scales/diatonic.ts";
+import { DORIAN_PATTERN } from "../../src/scales/index.ts";
 import { scaleFactory } from "../../src/scales/scale.ts";
 import { pitchFactory } from "../../src/primitives/pitch.ts";
-import { NoteLetter, Accidental } from "../../src/primitives/note-name.ts";
+import { NoteLetter, Accidental, SpelledNoteName } from "../../src/primitives/note-name.ts";
+
+// ── Shared fixtures ───────────────────────────────────────────────────────────
+
+const NATURAL_PC: Record<number, number> = {
+  [NoteLetter.C]: 0, [NoteLetter.D]: 2, [NoteLetter.E]: 4,
+  [NoteLetter.F]: 5, [NoteLetter.G]: 7, [NoteLetter.A]: 9, [NoteLetter.B]: 11,
+};
+
+const ALL_MAJOR_ROOTS: SpelledNoteName[] = [
+  { letter: NoteLetter.C, accidental: Accidental.Natural },
+  { letter: NoteLetter.G, accidental: Accidental.Natural },
+  { letter: NoteLetter.D, accidental: Accidental.Natural },
+  { letter: NoteLetter.A, accidental: Accidental.Natural },
+  { letter: NoteLetter.E, accidental: Accidental.Natural },
+  { letter: NoteLetter.B, accidental: Accidental.Natural },
+  { letter: NoteLetter.F, accidental: Accidental.Sharp },
+  { letter: NoteLetter.C, accidental: Accidental.Sharp },
+  { letter: NoteLetter.F, accidental: Accidental.Natural },
+  { letter: NoteLetter.B, accidental: Accidental.Flat },
+  { letter: NoteLetter.E, accidental: Accidental.Flat },
+  { letter: NoteLetter.A, accidental: Accidental.Flat },
+  { letter: NoteLetter.D, accidental: Accidental.Flat },
+  { letter: NoteLetter.G, accidental: Accidental.Flat },
+  { letter: NoteLetter.C, accidental: Accidental.Flat },
+];
+
+function makePitch(root: SpelledNoteName): ReturnType<typeof pitchFactory.fromMidiWithSpelling> {
+  return pitchFactory.fromMidiWithSpelling(60 + NATURAL_PC[root.letter]! + root.accidental, root);
+}
+
+const C4 = pitchFactory.fromMidi(60);
+const cMajor = scaleFactory.build(MAJOR_PATTERN, C4);
+
+// ── Pattern definitions ───────────────────────────────────────────────────────
 
 describe("Major scale pattern", () => {
-  it("has 7 interval offsets starting with 0", () => {
-    expect(MAJOR_PATTERN.intervals).toHaveLength(7);
-    expect(MAJOR_PATTERN.intervals[0]).toBe(0);
+  it("has intervals [0, 2, 4, 5, 7, 9, 11]", () => {
+    expect(MAJOR_PATTERN.intervals).toEqual([0, 2, 4, 5, 7, 9, 11]);
   });
 
-  it("intervals are [0, 2, 4, 5, 7, 9, 11]", () => {
-    expect(MAJOR_PATTERN.intervals).toEqual([0, 2, 4, 5, 7, 9, 11]);
+  it("has 7 intervals starting with 0", () => {
+    expect(MAJOR_PATTERN.intervals).toHaveLength(7);
+    expect(MAJOR_PATTERN.intervals[0]).toBe(0);
   });
 
   it("category is 'diatonic'", () => {
@@ -74,12 +109,7 @@ describe("Melodic minor scale pattern", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Scale instance tests (requires scaleFactory + pitchFactory)
-// ---------------------------------------------------------------------------
-
-const C4 = pitchFactory.fromMidi(60);
-const cMajor = scaleFactory.build(MAJOR_PATTERN, C4);
+// ── Scale instance: degree, contains, transpose ───────────────────────────────
 
 describe("Scale.degree()", () => {
   it("degree(1) = root", () => {
@@ -98,67 +128,51 @@ describe("Scale.degree()", () => {
     expect(b4.spelling.letter).toBe(NoteLetter.B);
   });
 
-  it("degree(8) = root one octave up", () => {
-    expect(cMajor.degree(8).midi).toBe(72);
-  });
-
   it("throws RangeError for degree < 1", () => {
     expect(() => cMajor.degree(0)).toThrow(RangeError);
     expect(() => cMajor.degree(-1)).toThrow(RangeError);
   });
+
+  it("in-range degree returns same pitch object as pitches array", () => {
+    for (let d = 1; d <= 7; d++) {
+      expect(cMajor.degree(d)).toBe(cMajor.pitches[d - 1]);
+    }
+  });
+});
+
+describe("Scale.degree() — wrapping beyond octave", () => {
+  it("degree(8) = root one octave up", () => {
+    expect(cMajor.degree(8).midi).toBe(72);
+  });
+
+  it("degree(9) = D above the octave", () => {
+    expect(cMajor.degree(9).midi).toBe(74);
+  });
 });
 
 describe("Scale.contains()", () => {
-  it("C major contains G#: false", () => {
+  it("returns true for diatonic pitches (by pitch class, ignores octave)", () => {
+    for (const p of cMajor.pitches) {
+      expect(cMajor.contains(p)).toBe(true);
+    }
+    const g5 = pitchFactory.fromMidi(79);
+    expect(cMajor.contains(g5)).toBe(true);
+  });
+
+  it("returns false for non-diatonic pitches", () => {
+    const fSharp = pitchFactory.fromMidi(66);
+    expect(cMajor.contains(fSharp)).toBe(false);
+
     const gSharp = pitchFactory.fromMidiWithSpelling(68, {
       letter: NoteLetter.G,
       accidental: Accidental.Sharp,
     });
     expect(cMajor.contains(gSharp)).toBe(false);
   });
-
-  it("C major contains F: true", () => {
-    const f4 = pitchFactory.fromMidi(65);
-    expect(cMajor.contains(f4)).toBe(true);
-  });
-
-  it("uses pitch-class comparison (ignores octave)", () => {
-    const g5 = pitchFactory.fromMidi(79); // G5, different octave from G4
-    expect(cMajor.contains(g5)).toBe(true);
-  });
-});
-
-describe("Scale.degree() — fast path vs wrapping", () => {
-  it("in-range degree returns same pitch object as pitches array", () => {
-    for (let d = 1; d <= 7; d++) {
-      expect(cMajor.degree(d)).toBe(cMajor.pitches[d - 1]);
-    }
-  });
-
-  it("degree(8) wraps correctly (one octave above root)", () => {
-    expect(cMajor.degree(8).midi).toBe(72);
-  });
-
-  it("degree(9) wraps correctly (one octave above degree 2)", () => {
-    expect(cMajor.degree(9).midi).toBe(74);
-  });
-});
-
-describe("Scale.contains() — O(1) Set lookup", () => {
-  it("all diatonic pitches are contained", () => {
-    for (const p of cMajor.pitches) {
-      expect(cMajor.contains(p)).toBe(true);
-    }
-  });
-
-  it("non-diatonic pitch class not contained", () => {
-    const fSharp = pitchFactory.fromMidi(66);
-    expect(cMajor.contains(fSharp)).toBe(false);
-  });
 });
 
 describe("Scale.transpose()", () => {
-  it("transposing C major by 2 → D major", () => {
+  it("transposing C major by +2 semitones → root is D", () => {
     const dMajor = cMajor.transpose(2);
     expect(dMajor.root.midi).toBe(62);
     expect(dMajor.root.spelling.letter).toBe(NoteLetter.D);
@@ -170,15 +184,13 @@ describe("Scale.transpose()", () => {
   });
 });
 
-describe("Scale.intervalToDegree() — beyond scale length", () => {
-  it("degree 8 wraps to degree 1 + one octave (C major)", () => {
-    const interval = cMajor.intervalToDegree(8);
-    expect(interval.semitones).toBe(12); // octave
+describe("Scale.intervalToDegree()", () => {
+  it("degree 8 wraps to octave (12 semitones)", () => {
+    expect(cMajor.intervalToDegree(8).semitones).toBe(12);
   });
 
-  it("degree 9 wraps to degree 2 + one octave (D above C4)", () => {
-    const interval = cMajor.intervalToDegree(9);
-    expect(interval.semitones).toBe(14); // M9
+  it("degree 9 wraps to major ninth (14 semitones)", () => {
+    expect(cMajor.intervalToDegree(9).semitones).toBe(14);
   });
 
   it("throws RangeError for degree < 1", () => {
@@ -186,14 +198,102 @@ describe("Scale.intervalToDegree() — beyond scale length", () => {
   });
 });
 
-describe("Scale.degree() — beyond scale length", () => {
-  it("degree 8 wraps to octave above root (C5 for C4 major)", () => {
-    const pitch = cMajor.degree(8);
-    expect(pitch.midi).toBe(72); // C5
+// ── Enharmonic spelling ──────────────────────────────────────────────────────
+
+describe("Scale enharmonic spelling", () => {
+  it("C major: all naturals, letters C–B", () => {
+    const letters = cMajor.pitches.map(p => p.spelling.letter);
+    expect(letters).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(cMajor.pitches.every(p => p.spelling.accidental === Accidental.Natural)).toBe(true);
   });
 
-  it("degree 9 = D above the octave", () => {
-    const pitch = cMajor.degree(9);
-    expect(pitch.midi).toBe(74); // D5
+  it("G major: F# on leading tone", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.G, accidental: Accidental.Natural }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:0", "5:0", "6:0", "0:0", "1:0", "2:0", "3:1"]);
+  });
+
+  it("F major: Bb on subdominant", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.F, accidental: Accidental.Natural }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["3:0", "4:0", "5:0", "6:-1", "0:0", "1:0", "2:0"]);
+  });
+
+  it("Bb major: Bb and Eb", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.B, accidental: Accidental.Flat }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["6:-1", "0:0", "1:0", "2:-1", "3:0", "4:0", "5:0"]);
+  });
+
+  it("Eb major: all flats/naturals, no sharps", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.E, accidental: Accidental.Flat }));
+    expect(scale.pitches.map(p => p.spelling.letter)).toEqual([2, 3, 4, 5, 6, 0, 1]);
+    expect(scale.pitches.every(p => p.spelling.accidental <= 0)).toBe(true);
+  });
+
+  it("F# major: E# on leading tone", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.F, accidental: Accidental.Sharp }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["3:1", "4:1", "5:1", "6:0", "0:1", "1:1", "2:1"]);
+  });
+
+  it("C# major: E# and B# (not F and C)", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.C, accidental: Accidental.Sharp }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:1", "1:1", "2:1", "3:1", "4:1", "5:1", "6:1"]);
+  });
+
+  it("Cb major: Fb and Cb (all flats)", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.C, accidental: Accidental.Flat }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:-1", "1:-1", "2:-1", "3:-1", "4:-1", "5:-1", "6:-1"]);
+  });
+
+  it("A harmonic minor: G# on raised 7th", () => {
+    const scale = scaleFactory.build(HARMONIC_MINOR_PATTERN, makePitch({ letter: NoteLetter.A, accidental: Accidental.Natural }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["5:0", "6:0", "0:0", "1:0", "2:0", "3:0", "4:1"]);
+  });
+
+  it("A dorian: F# raised 6th (not Gb)", () => {
+    const scale = scaleFactory.build(DORIAN_PATTERN, makePitch({ letter: NoteLetter.A, accidental: Accidental.Natural }));
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["5:0", "6:0", "0:0", "1:0", "2:0", "3:1", "4:0"]);
+  });
+
+  it("D dorian: B natural, not Cb", () => {
+    const scale = scaleFactory.build(DORIAN_PATTERN, makePitch({ letter: NoteLetter.D, accidental: Accidental.Natural }));
+    expect(scale.pitches.map(p => p.spelling.letter)).toEqual([1, 2, 3, 4, 5, 6, 0]);
+  });
+
+  it("every major scale has exactly one of each letter A–G", () => {
+    for (const root of ALL_MAJOR_ROOTS) {
+      const scale = scaleFactory.build(MAJOR_PATTERN, makePitch(root));
+      const letters = [...scale.pitches.map(p => p.spelling.letter)].sort();
+      expect(letters).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    }
+  });
+
+  it("degree(8) preserves spelling (octave above root)", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.G, accidental: Accidental.Natural }));
+    const high = scale.degree(8);
+    expect(high.midi).toBe(79);
+    expect(high.spelling.letter).toBe(NoteLetter.G);
+    expect(high.spelling.accidental).toBe(Accidental.Natural);
+  });
+
+  it("degree(9) of C# major is D# one octave up", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.C, accidental: Accidental.Sharp }));
+    const high = scale.degree(9);
+    expect(high.midi).toBe(75);
+    expect(high.spelling.letter).toBe(NoteLetter.D);
+    expect(high.spelling.accidental).toBe(Accidental.Sharp);
+  });
+
+  it("transpose of C# major by +1 semitone gives D major root", () => {
+    const scale = scaleFactory.build(MAJOR_PATTERN, makePitch({ letter: NoteLetter.C, accidental: Accidental.Sharp }));
+    const transposed = scale.transpose(1);
+    expect(transposed.root.midi).toBe(62);
+    expect(transposed.root.spelling.letter).toBe(NoteLetter.D);
   });
 });

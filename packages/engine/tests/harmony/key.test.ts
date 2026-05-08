@@ -120,6 +120,42 @@ describe("Key.spellPitchClass()", () => {
   });
 });
 
+describe("Key.naturalScale", () => {
+  it("C major naturalScale is a major scale starting on C", () => {
+    const scale = CMajor.naturalScale;
+    expect(scale.root.midi).toBe(60);
+    expect(scale.pitches).toHaveLength(7);
+    expect(scale.pattern.name).toBe("major");
+  });
+
+  it("naturalScale is lazily computed and cached (same reference on repeated access)", () => {
+    const a = CMajor.naturalScale;
+    const b = CMajor.naturalScale;
+    expect(a).toBe(b);
+  });
+
+  it("A minor naturalScale is natural minor starting on A", () => {
+    const aMinor = keyFactory.minor(0);
+    const scale = aMinor.naturalScale;
+    expect(scale.root.midi).toBe(69);
+    expect(scale.pattern.name).toBe("natural-minor");
+  });
+
+  it("Gb major naturalScale has correct spelling (Gb Ab Bb Cb Db Eb F)", () => {
+    const gbMajor = keyFactory.major(-6);
+    const scale = gbMajor.naturalScale;
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:-1", "5:-1", "6:-1", "0:-1", "1:-1", "2:-1", "3:0"]);
+  });
+
+  it("F# major naturalScale has correct spelling (F# G# A# B C# D# E#)", () => {
+    const fsMajor = keyFactory.major(6);
+    const scale = fsMajor.naturalScale;
+    const names = scale.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["3:1", "4:1", "5:1", "6:0", "0:1", "1:1", "2:1"]);
+  });
+});
+
 describe("keyFactory.allMajor / allMinor", () => {
   it("allMajor has 15 keys", () => {
     expect(keyFactory.allMajor).toHaveLength(15);

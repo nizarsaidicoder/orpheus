@@ -91,6 +91,25 @@ describe("PitchFactory", () => {
         pitchFactory.fromSpelling({ letter: NoteLetter.G, accidental: Accidental.Natural }, 15)
       ).toThrow(RangeError);
     });
+    it("preserves caller's octave even when MIDI falls in different octave (Cb4)", () => {
+      const pitch = pitchFactory.fromSpelling(
+        { letter: NoteLetter.C, accidental: Accidental.Flat },
+        4
+      );
+      expect(pitch.midi).toBe(59);    // MIDI 59 = B3
+      expect(pitch.octave).toBe(4);   // but it's still Cb4 (not B3)
+      expect(pitch.spelling.letter).toBe(NoteLetter.C);
+      expect(pitch.spelling.accidental).toBe(Accidental.Flat);
+    });
+
+    it("preserves caller's octave even when MIDI falls in different octave (B#4)", () => {
+      const pitch = pitchFactory.fromSpelling(
+        { letter: NoteLetter.B, accidental: Accidental.Sharp },
+        4
+      );
+      expect(pitch.midi).toBe(72);    // MIDI 72 — enharmonic with C5
+      expect(pitch.octave).toBe(4);   // but it's still B#4 (not C5)
+    });
   });
 
   describe("fromFrequency", () => {
@@ -126,6 +145,27 @@ describe("PitchArithmetic", () => {
       const high = pitchFactory.fromMidi(127);
       expect(pitchArithmetic.transpose(low, -10).midi).toBe(0);
       expect(pitchArithmetic.transpose(high, 10).midi).toBe(127);
+    });
+    it("transposing from a flat spelling preserves flat preference when possible", () => {
+      const bFlat = pitchFactory.fromMidiWithSpelling(70, {
+        letter: NoteLetter.B,
+        accidental: Accidental.Flat,
+      });
+      const up = pitchArithmetic.transpose(bFlat, 3); // Bb → Db (prefer flat over C#)
+      expect(up.spelling.letter).toBe(NoteLetter.D);
+      expect(up.spelling.accidental).toBe(Accidental.Flat);
+    });
+
+    it("transposing from natural defaults to sharp for black keys", () => {
+      const up = pitchArithmetic.transpose(C4, 1); // C → C#
+      expect(up.spelling.letter).toBe(NoteLetter.C);
+      expect(up.spelling.accidental).toBe(Accidental.Sharp);
+    });
+
+    it("transposing to white key keeps natural spelling", () => {
+      const up = pitchArithmetic.transpose(C4, 2); // C → D
+      expect(up.spelling.letter).toBe(NoteLetter.D);
+      expect(up.spelling.accidental).toBe(Accidental.Natural);
     });
   });
 
@@ -191,6 +231,45 @@ describe("PitchArithmetic", () => {
       expect(respelled.spelling.letter).toBe(NoteLetter.C);
       expect(respelled.spelling.accidental).toBe(Accidental.Natural);
       expect(respelled.midi).toBe(60);
+    });
+    it("respells E# → F", () => {
+      const eSharp = pitchFactory.fromMidiWithSpelling(65, {
+        letter: NoteLetter.E,
+        accidental: Accidental.Sharp,
+      });
+      const respelled = pitchArithmetic.respell(eSharp);
+      expect(respelled.spelling.letter).toBe(NoteLetter.F);
+      expect(respelled.spelling.accidental).toBe(Accidental.Natural);
+    });
+
+    it("respells B# → C", () => {
+      const bSharp = pitchFactory.fromMidiWithSpelling(60, {
+        letter: NoteLetter.B,
+        accidental: Accidental.Sharp,
+      });
+      const respelled = pitchArithmetic.respell(bSharp);
+      expect(respelled.spelling.letter).toBe(NoteLetter.C);
+      expect(respelled.spelling.accidental).toBe(Accidental.Natural);
+    });
+
+    it("respells Cb → B", () => {
+      const cFlat = pitchFactory.fromMidiWithSpelling(59, {
+        letter: NoteLetter.C,
+        accidental: Accidental.Flat,
+      });
+      const respelled = pitchArithmetic.respell(cFlat);
+      expect(respelled.spelling.letter).toBe(NoteLetter.B);
+      expect(respelled.spelling.accidental).toBe(Accidental.Natural);
+    });
+
+    it("respells Fb → E", () => {
+      const fFlat = pitchFactory.fromMidiWithSpelling(64, {
+        letter: NoteLetter.F,
+        accidental: Accidental.Flat,
+      });
+      const respelled = pitchArithmetic.respell(fFlat);
+      expect(respelled.spelling.letter).toBe(NoteLetter.E);
+      expect(respelled.spelling.accidental).toBe(Accidental.Natural);
     });
   });
 });

@@ -137,6 +137,62 @@ describe("ChordFactory.seventh()", () => {
     expect(cMm7.pitches[2]!.midi).toBe(67); // G4
     expect(cMm7.pitches[3]!.midi).toBe(71); // B4
   });
+  it("C minor 7th is spelled {C, Eb, G, Bb} — not D#, A#", () => {
+    const cm7 = chordFactory.seventh(C4, "minor7");
+    expect(cm7.pitches[1]!.spelling.letter).toBe(NoteLetter.E);
+    expect(cm7.pitches[1]!.spelling.accidental).toBe(Accidental.Flat);
+    expect(cm7.pitches[3]!.spelling.letter).toBe(NoteLetter.B);
+    expect(cm7.pitches[3]!.spelling.accidental).toBe(Accidental.Flat);
+  });
+
+  it("C diminished 7th uses Bbb (double-flat 7th), not A", () => {
+    const cDim7 = chordFactory.seventh(C4, "diminished7");
+    const names = cDim7.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:-1", "4:-1", "6:-2"]); // C, Eb, Gb, Bbb
+  });
+
+  it("B diminished 7th uses Ab (diminished 7th from B)", () => {
+    const bDim7 = chordFactory.seventh(B3, "diminished7");
+    // B D F Ab — Ab, not G#
+    expect(bDim7.pitches[3]!.spelling.letter).toBe(NoteLetter.A);
+    expect(bDim7.pitches[3]!.spelling.accidental).toBe(Accidental.Flat);
+  });
+
+  it("G dominant 7th uses F natural, not E#", () => {
+    const g7 = chordFactory.seventh(G4, "dominant7");
+    expect(g7.pitches[3]!.spelling.letter).toBe(NoteLetter.F);
+    expect(g7.pitches[3]!.spelling.accidental).toBe(Accidental.Natural);
+  });
+
+  it("G# major triad uses B# and D# (not C, Eb)", () => {
+    const gSharp = pitchFactory.fromMidiWithSpelling(68, {
+      letter: NoteLetter.G,
+      accidental: Accidental.Sharp,
+    });
+    const gSharpMaj = chordFactory.triad(gSharp, "major");
+    const names = gSharpMaj.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:1", "6:1", "1:1"]); // G#, B#, D#
+  });
+
+  it("Ab minor triad uses Cb (not B)", () => {
+    const aFlat = pitchFactory.fromMidiWithSpelling(68, {
+      letter: NoteLetter.A,
+      accidental: Accidental.Flat,
+    });
+    const abMin = chordFactory.triad(aFlat, "minor");
+    expect(abMin.pitches[1]!.spelling.letter).toBe(NoteLetter.C);
+    expect(abMin.pitches[1]!.spelling.accidental).toBe(Accidental.Flat);
+  });
+
+  it("F# half-diminished 7th is spelled F# A C E", () => {
+    const fSharp = pitchFactory.fromMidiWithSpelling(66, {
+      letter: NoteLetter.F,
+      accidental: Accidental.Sharp,
+    });
+    const chord = chordFactory.seventh(fSharp, "half-diminished7");
+    const names = chord.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["3:1", "5:0", "0:0", "2:0"]); // F#, A, C, E
+  });
 });
 
 describe("ChordFactory.build() — alterations", () => {
@@ -182,6 +238,21 @@ describe("ChordFactory.build() — alterations", () => {
     });
     // A5 above G4 = 67 + 8 = 75
     expect(g7sharp5.pitches.some(p => p.midi === 75)).toBe(true);
+  });
+  it("G altered (7#5b9) spells #5 as D# and b9 as Ab", () => {
+    const gAlt = chordFactory.build({
+      root: G4,
+      quality: {
+        kind: "altered", alterations: [
+          { degree: 5, direction: "sharp" },
+          { degree: 9, direction: "flat" },
+        ]
+      },
+    });
+    // #5 = D# (raised 5th from G is D), b9 = Ab (lowered 9th from G is A)
+    const names = gAlt.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    // G B D# F Ab
+    expect(names).toEqual(["4:0", "6:0", "1:1", "3:0", "5:-1"]);
   });
 });
 

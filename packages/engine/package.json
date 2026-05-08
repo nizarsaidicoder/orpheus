@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src tests"
+    "lint": "eslint src tests",
+    "playground": "vite-node --watch playground.ts"
   }
 }

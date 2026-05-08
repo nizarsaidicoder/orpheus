@@ -45,11 +45,26 @@ export const ENHARMONIC_TABLE: Readonly<Record<number, readonly SpelledNoteName[
 export function enharmonicEquivalentOf(spelling: SpelledNoteName): SpelledNoteName {
   const pc = spellingToPitchClass(spelling);
   const options = ENHARMONIC_TABLE[pc];
+
+  // Special cases for E#/F, B#/C, Fb/E, Cb/B
+  const specialCases: Record<string, SpelledNoteName> = {
+    // E# (PC 5) → F
+    [`${NoteLetter.E}-${Accidental.Sharp}`]: { letter: NoteLetter.F, accidental: Accidental.Natural },
+    // B# (PC 0) → C
+    [`${NoteLetter.B}-${Accidental.Sharp}`]: { letter: NoteLetter.C, accidental: Accidental.Natural },
+    // Fb (PC 4) → E
+    [`${NoteLetter.F}-${Accidental.Flat}`]: { letter: NoteLetter.E, accidental: Accidental.Natural },
+    // Cb (PC 11) → B
+    [`${NoteLetter.C}-${Accidental.Flat}`]: { letter: NoteLetter.B, accidental: Accidental.Natural },
+  };
+
+  const key = `${spelling.letter}-${spelling.accidental}`;
+  if (specialCases[key]) return specialCases[key];
+
   if (options === undefined || options.length < 2) return spelling;
   const other = options.find(
     (s) => s.letter !== spelling.letter || s.accidental !== spelling.accidental
   );
-  /* c8 ignore next */
   return other ?? spelling;
 }
 

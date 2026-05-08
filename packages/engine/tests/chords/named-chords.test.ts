@@ -291,3 +291,54 @@ describe("chordFactory.fromName() — quality field is set", () => {
     expect(c.quality.kind).toBe("add9");
   });
 });
+
+describe("chordFactory.fromName() — enharmonic spelling", () => {
+  it("min7 is spelled C Eb G Bb (not D#, A#)", () => {
+    const c = chordFactory.fromName("min7", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:-1", "4:0", "6:-1"]); // C, Eb, G, Bb
+  });
+
+  it("dim7 is spelled C Eb Gb Bb (half-diminished, not D# F# A#)", () => {
+    const c = chordFactory.fromName("dim7", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:-1", "4:-1", "6:-1"]); // C, Eb, Gb, Bb
+  });
+
+  it("dimb7 uses Bbb (C Eb Gb Bbb)", () => {
+    const c = chordFactory.fromName("dimb7", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:-1", "4:-1", "6:-2"]); // C, Eb, Gb, Bbb
+  });
+
+  it("aug is spelled C E G# (not Ab)", () => {
+    const c = chordFactory.fromName("aug", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:0", "4:1"]); // C, E, G#
+  });
+
+  it("7 is spelled C E G Bb (not A#)", () => {
+    const c = chordFactory.fromName("7", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:0", "4:0", "6:-1"]); // C, E, G, Bb
+  });
+
+  it("7b9 on G is spelled G B D F Ab (not G#)", () => {
+    const c = chordFactory.fromName("7b9", G4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:0", "6:0", "1:0", "3:0", "5:-1"]); // G, B, D, F, Ab
+  });
+
+  it("majs9 on G is spelled G B D F A# (raised 9 = A#)", () => {
+    const c = chordFactory.fromName("majs9", G4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:0", "6:0", "1:0", "3:0", "5:1"]); // G, B, D, F, A#
+  });
+
+  it("majs911s on C is spelled C E G Bb D# F#", () => {
+    const c = chordFactory.fromName("majs911s", C4);
+    const names = c.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    // #9 = D#, #11 = F# (stays on D and F letters)
+    expect(names).toEqual(["0:0", "2:0", "4:0", "6:-1", "1:1", "3:1"]);
+  });
+});

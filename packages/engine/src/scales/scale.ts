@@ -1,7 +1,8 @@
 import type { Interval } from "../primitives/interval.ts";
 import type { Pitch } from "../primitives/pitch.ts";
 import { intervalFactory } from "../primitives/interval.ts";
-import { pitchArithmetic } from "../primitives/pitch.ts";
+import { pitchArithmetic, pitchFactory } from "../primitives/pitch.ts";
+import { Accidental, NATURAL_PC, NoteLetter } from "../index.ts";
 
 // ---------------------------------------------------------------------------
 // Scale pattern types (the "recipe" — key-agnostic)
@@ -131,8 +132,43 @@ class ConcreteScale extends Scale {
     super();
     this.root = root;
     this.pattern = pattern;
-    this.pitches = pattern.intervals.map(offset => pitchArithmetic.transpose(root, offset));
+
+    // Build pitches with proper diatonic spelling
+    const rootLetter = root.spelling.letter;
+    const rootOctave = Math.floor((root.midi - NATURAL_PC[rootLetter] - root.spelling.accidental) / 12) - 1;
+    this.pitches = pattern.intervals.map((offset, index) => {
+      const targetLetter = this.addDiatonicSteps(rootLetter, index);
+      const targetOctave = rootOctave + Math.floor((rootLetter + index) / 7);
+      const targetMidi = root.midi + offset;
+      const targetNaturalMidi = (targetOctave + 1) * 12 + NATURAL_PC[targetLetter];
+      const neededAccidental = targetMidi - targetNaturalMidi;
+
+      return pitchFactory.fromSpelling(
+        { letter: targetLetter, accidental: neededAccidental as Accidental },
+        targetOctave
+      );
+    });
+
     this._pcSet = new Set(this.pitches.map(p => p.pitchClass));
+  }
+
+  // Helper: add diatonic steps to a letter
+  private addDiatonicSteps(start: NoteLetter, steps: number): NoteLetter {
+    const letters = [
+      NoteLetter.C, NoteLetter.D, NoteLetter.E,
+      NoteLetter.F, NoteLetter.G, NoteLetter.A, NoteLetter.B
+    ];
+    const idx = letters.indexOf(start);
+    return letters[(idx + steps) % 7]!;
+  }
+
+  // Helper: get MIDI number of a natural note at a given octave
+  private getNaturalMidi(letter: NoteLetter, octave: number): number {
+    const naturalPc: Record<NoteLetter, number> = {
+      [NoteLetter.C]: 0, [NoteLetter.D]: 2, [NoteLetter.E]: 4,
+      [NoteLetter.F]: 5, [NoteLetter.G]: 7, [NoteLetter.A]: 9, [NoteLetter.B]: 11
+    };
+    return (octave + 1) * 12 + naturalPc[letter];
   }
 
   degree(n: number): Pitch {

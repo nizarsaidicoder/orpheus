@@ -54,4 +54,37 @@ describe("enharmonicEquivalentOf()", () => {
     const c = { letter: NoteLetter.C, accidental: Accidental.Natural };
     expect(enharmonicEquivalentOf(c)).toEqual(c);
   });
+
+  it("E# → F (white-key enharmonic pair not in BLACK_KEY table)", () => {
+    const eSharp = { letter: NoteLetter.E, accidental: Accidental.Sharp };
+    const result = enharmonicEquivalentOf(eSharp);
+    expect(result.letter).toBe(NoteLetter.F);
+    expect(result.accidental).toBe(Accidental.Natural);
+  });
+
+  it("B# → C", () => {
+    const bSharp = { letter: NoteLetter.B, accidental: Accidental.Sharp };
+    const result = enharmonicEquivalentOf(bSharp);
+    expect(result.letter).toBe(NoteLetter.C);
+    expect(result.accidental).toBe(Accidental.Natural);
+  });
+
+  it("Fb → E", () => {
+    const fFlat = { letter: NoteLetter.F, accidental: Accidental.Flat };
+    const result = enharmonicEquivalentOf(fFlat);
+    expect(result.letter).toBe(NoteLetter.E);
+    expect(result.accidental).toBe(Accidental.Natural);
+  });
+
+  it("Cb → B", () => {
+    const cFlat = { letter: NoteLetter.C, accidental: Accidental.Flat };
+    const result = enharmonicEquivalentOf(cFlat);
+    expect(result.letter).toBe(NoteLetter.B);
+    expect(result.accidental).toBe(Accidental.Natural);
+  });
+
+  it("double-sharp / double-flat return self (natural simplification not yet supported)", () => {
+    const fDoubleSharp = { letter: NoteLetter.F, accidental: Accidental.DoubleSharp };
+    expect(enharmonicEquivalentOf(fDoubleSharp)).toEqual(fDoubleSharp);
+  });
 });

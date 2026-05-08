@@ -63,46 +63,72 @@ function posToFifths(pos: number): number {
   return pos <= 6 ? pos : pos - 12;
 }
 
-// Build major and minor circles
-const majorNodes: ConcreteCircleNode[] = MAJOR_SIGS.map((sig, pos) =>
-  new ConcreteCircleNode(keyFactory.major(sig), posToFifths(pos))
-);
-const minorNodes: ConcreteCircleNode[] = MINOR_SIGS.map((sig, pos) =>
-  new ConcreteCircleNode(keyFactory.minor(sig), posToFifths(pos))
-);
+// ---------------------------------------------------------------------------
+// Lazy initialization — avoids circular import with scaleFactory via keyFactory
+// ---------------------------------------------------------------------------
 
-// Wire dominantNeighbor (clockwise = +1) and subdominantNeighbor (counter-clockwise = -1)
-for (let i = 0; i < 12; i++) {
-  majorNodes[i]!.dominantNeighbor    = majorNodes[(i + 1) % 12]!;
-  majorNodes[i]!.subdominantNeighbor = majorNodes[(i + 11) % 12]!;
-  minorNodes[i]!.dominantNeighbor    = minorNodes[(i + 1) % 12]!;
-  minorNodes[i]!.subdominantNeighbor = minorNodes[(i + 11) % 12]!;
+let _majorNodes: ConcreteCircleNode[] | undefined;
+let _minorNodes: ConcreteCircleNode[] | undefined;
+let _keyToNode: Map<Key, ConcreteCircleNode> | undefined;
+
+function getMajorNodes(): ConcreteCircleNode[] {
+  if (!_majorNodes) {
+    _majorNodes = MAJOR_SIGS.map((sig, pos) =>
+      new ConcreteCircleNode(keyFactory.major(sig), posToFifths(pos))
+    );
+    _minorNodes = MINOR_SIGS.map((sig, pos) =>
+      new ConcreteCircleNode(keyFactory.minor(sig), posToFifths(pos))
+    );
+
+    // Wire dominantNeighbor (clockwise = +1) and subdominantNeighbor (counter-clockwise = -1)
+    for (let i = 0; i < 12; i++) {
+      _majorNodes[i]!.dominantNeighbor = _majorNodes[(i + 1) % 12]!;
+      _majorNodes[i]!.subdominantNeighbor = _majorNodes[(i + 11) % 12]!;
+      _minorNodes[i]!.dominantNeighbor = _minorNodes[(i + 1) % 12]!;
+      _minorNodes[i]!.subdominantNeighbor = _minorNodes[(i + 11) % 12]!;
+    }
+
+    // Build lookup map from Key → CircleNode
+    _keyToNode = new Map<Key, ConcreteCircleNode>();
+    for (const n of _majorNodes) _keyToNode.set(n.key, n);
+    for (const n of _minorNodes) _keyToNode.set(n.key, n);
+
+    // Also map enharmonic equivalents to the same node
+    // (F# and Gb major are both valid lookups for node at position 6)
+    for (const n of _majorNodes) _keyToNode.set(n.key.enharmonicEquivalent, n);
+    for (const n of _minorNodes) _keyToNode.set(n.key.enharmonicEquivalent, n);
+  }
+  return _majorNodes;
 }
 
-// Map from Key instance → CircleNode
-const keyToNode = new Map<Key, ConcreteCircleNode>();
-for (const n of majorNodes) keyToNode.set(n.key, n);
-for (const n of minorNodes) keyToNode.set(n.key, n);
+function getMinorNodes(): ConcreteCircleNode[] {
+  getMajorNodes(); // ensure initialized
+  return _minorNodes!;
+}
 
-// Also map enharmonic equivalents to the same node
-// (F# and Gb major are both valid lookups for node at position 6)
-for (const n of majorNodes) keyToNode.set(n.key.enharmonicEquivalent, n);
-for (const n of minorNodes) keyToNode.set(n.key.enharmonicEquivalent, n);
+function getKeyToNode(): Map<Key, ConcreteCircleNode> {
+  getMajorNodes(); // ensure initialized
+  return _keyToNode!;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export const circleOfFifths: CircleOfFifths = {
   nodeFor(key: Key): CircleNode {
-    const node = keyToNode.get(key) ?? keyToNode.get(key.enharmonicEquivalent);
+    const node = getKeyToNode().get(key) ?? getKeyToNode().get(key.enharmonicEquivalent);
     if (!node) throw new Error(`Key not found in circle: ${key.tonic.spelling.letter} ${key.modality}`);
     return node;
   },
 
-  get majorKeys() { return majorNodes as ReadonlyArray<CircleNode>; },
-  get minorKeys() { return minorNodes as ReadonlyArray<CircleNode>; },
+  get majorKeys() { return getMajorNodes() as ReadonlyArray<CircleNode>; },
+  get minorKeys() { return getMinorNodes() as ReadonlyArray<CircleNode>; },
 
   pathBetween(from: Key, to: Key): ReadonlyArray<CircleNode> {
     const fromNode = this.nodeFor(from);
     const toNode   = this.nodeFor(to);
-    const nodes    = from.modality === "major" ? majorNodes : minorNodes;
+    const nodes = from.modality === "major" ? getMajorNodes() : getMinorNodes();
     const fi = nodes.indexOf(fromNode as ConcreteCircleNode);
     const ti = nodes.indexOf(toNode   as ConcreteCircleNode);
     if (fi < 0 || ti < 0) return [fromNode, toNode];
@@ -120,7 +146,7 @@ export const circleOfFifths: CircleOfFifths = {
   distance(a: Key, to: Key): number {
     const nodeA = this.nodeFor(a);
     const nodeB = this.nodeFor(to);
-    const nodes = a.modality === "major" ? majorNodes : minorNodes;
+    const nodes = a.modality === "major" ? getMajorNodes() : getMinorNodes();
     const ai = nodes.indexOf(nodeA as ConcreteCircleNode);
     const bi = nodes.indexOf(nodeB as ConcreteCircleNode);
     if (ai < 0 || bi < 0) return 0;

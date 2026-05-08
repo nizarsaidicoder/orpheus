@@ -125,6 +125,32 @@ describe("Harmonizer.harmonize() — scaleDegree field", () => {
   });
 });
 
+describe("Harmonizer.harmonize() — enharmonic spelling", () => {
+  it("C major triad is spelled C E G (not B# or Fb)", () => {
+    const d = harmonizer.harmonize(cMajor, "triad");
+    const names = d[0]!.chord.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["0:0", "2:0", "4:0"]); // C E G
+  });
+
+  it("D minor triad in C major is spelled D F A (not E# or G##)", () => {
+    const d = harmonizer.harmonize(cMajor, "triad");
+    const names = d[1]!.chord.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["1:0", "3:0", "5:0"]); // D F A
+  });
+
+  it("B diminished is spelled B D F (not Cb or E#)", () => {
+    const d = harmonizer.harmonize(cMajor, "triad");
+    const names = d[6]!.chord.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["6:0", "1:0", "3:0"]); // B D F
+  });
+
+  it("G dominant 7th in C major is spelled G B D F (F natural, not E#)", () => {
+    const d = harmonizer.harmonize(cMajor, "seventh");
+    const names = d[4]!.chord.pitches.map(p => `${p.spelling.letter}:${p.spelling.accidental}`);
+    expect(names).toEqual(["4:0", "6:0", "1:0", "3:0"]); // G B D F
+  });
+});
+
 describe("Harmonizer memoization", () => {
   it("repeated harmonize() calls return same array reference", () => {
     const a = harmonizer.harmonize(cMajor, "triad");
