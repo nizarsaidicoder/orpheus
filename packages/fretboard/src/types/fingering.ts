@@ -30,4 +30,10 @@ export interface FretboardConstraints {
   readonly fromFret?: number;
   readonly toFret?: number;
   readonly maxVoicings?: number;
+  /**
+   * When true, also run the combinatorial generator and append its results
+   * after DB voicings. DB voicings always come first.
+   * Default: false (DB-only).
+   */
+  readonly combinatorial?: boolean;
 }

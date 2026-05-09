@@ -53,7 +53,6 @@ const allVoicings = shapeFinder.find(cMajor, guitar, {
     minStrings: 3,
     maxStrings: 6,
     maxVoicings: 30,
-    requireRootInBass: true,
 });
 
 allVoicings.forEach((v, i) => {

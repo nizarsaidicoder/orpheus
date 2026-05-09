@@ -125,13 +125,14 @@ spelledNoteNamesEqual(a: SpelledNoteName, b: SpelledNoteName): boolean
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `build` | `(pattern: ScalePattern, root: Pitch) → Scale` | Materialize a scale from a pattern + root. |
+| `build` | `(pattern: ScalePattern, root: Pitch) → Scale` | Materialize a scale from a pattern + root. Pitches are computed with proper diatonic spelling — each degree gets the correct letter name (no letter skipped or repeated). |
 
 **`Scale` instance methods (abstract base class):**
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `degree` | `(n: number) → Pitch` | 1-based degree. O(1) for n ≤ scale length (returns from precomputed `pitches`); computes on demand for octave-wrapped degrees. Throws `RangeError` if n < 1. |
+| `degreeName` | `(n: number, options?: DegreeNameOptions) → string` | Functional name for a scale degree (1-based). Wraps: `degreeName(8)` → `"tonic"`. Default style: `"functional"`. See [`scaleDegreeName`](#scaledegreenameandchromaticdegreename--free-functions) for all styles. |
 | `intervalToDegree` | `(n: number) → Interval` | Interval from root to degree n. |
 | `transpose` | `(semitones: number) → Scale` | New Scale transposed by semitones. |
 | `mode` | `(degree: number) → Scale` | New Scale rooted on the given degree (same pitch set, rotated pattern). |
@@ -170,6 +171,41 @@ createScaleRegistry(patterns: ReadonlyArray<ScalePattern>): ScaleRegistry
 ```
 
 Build a custom registry from scratch.
+
+---
+
+### `scaleDegreeName` and `chromaticDegreeName` — free functions
+
+```ts
+scaleDegreeName(
+  idx: number,           // 0-based index in scale (0 = tonic)
+  semitones: number,     // semitones from tonic to this degree
+  prevSemitones: number, // semitones from tonic to previous degree
+  options?: DegreeNameOptions,
+): string
+
+chromaticDegreeName(
+  pitchClass: number,
+  tonicPitchClass: number,
+  style?: DegreeNameStyle,
+): string
+```
+
+`chromaticDegreeName` handles all 12 chromatic degrees (useful for non-diatonic pitches).
+
+**`DegreeNameStyle` values and output for C major degrees:**
+
+| Style | Example output (degrees 1–7) |
+|-------|------------------------------|
+| `"functional"` | tonic, supertonic, mediant, subdominant, dominant, submediant, leading-tone |
+| `"technical"` | tonic, supertonic, mediant, subdominant, dominant, submediant, **subtonic** (if ♭7) / **leading-tone** (if ♮7) |
+| `"diatonic"` | 1st, 2nd, 3rd, 4th, 5th, 6th, 7th |
+| `"solfege"` | do, re, mi, fa, sol, la, ti |
+| `"solfege-fixed"` | do, re, mi, fa, sol, la, si |
+| `"indian"` | Sa, Re, Ga, Ma, Pa, Dha, Ni |
+| `"german"` | Grundton, Sekunde, Terz, Quarte, Quinte, Sexte, Septime |
+
+> **Tip:** Prefer `scale.degreeName(n, options)` over calling `scaleDegreeName` directly — it handles 1-based indexing and wrapping automatically.
 
 ---
 
@@ -234,6 +270,46 @@ Build a custom registry from scratch.
   intervalStructure: ReadonlyArray<Interval>;
 }
 ```
+
+---
+
+### `chordToString` — free function
+
+Render a `Chord` as a human-readable symbol with configurable notation style.
+
+```ts
+chordToString(chord: Chord, options?: ChordNotationOptions): string
+```
+
+**`ChordNotationOptions`:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `style` | `ChordNotationStyle` | `"classical"` | Notation style (see table below). |
+| `separator` | `string` | `""` | Separator between root and quality (e.g. `":"` → `"C:m7"`). |
+| `preferExplicitHalfDim` | `boolean` | style-dependent | Use `m7(♭5)` instead of `ø7`. |
+| `asciiOnly` | `boolean` | `false` | Replace `♭→b ♯→# °→o ø→o Δ→maj –→-`. |
+
+**`ChordNotationStyle` presets:**
+
+| Style | Minor | Maj7 | m7 | ø7 | Example |
+|-------|-------|------|----|----|---------|
+| `"classical"` | `m` | `maj7` | `m7` | `ø7` | `Cm7`, `Fmaj7` |
+| `"jazz"` | `–` | `Δ7` | `–7` | `ø7` | `C–7`, `FΔ7` |
+| `"pop"` | `min` | `maj7` | `min7` | `m7(♭5)` | `Cmin7`, `Fmaj7` |
+| `"german"` | lower root | `j7` | `7` (lower) | `ø7` | `c7` (Cm7), `Cj7` (Cmaj7), `H` (B), `B` (B♭) |
+
+```ts
+chordToString(chord)                            // "Cm7"     (classical, default)
+chordToString(chord, { style: "jazz" })          // "C–7"
+chordToString(chord, { style: "pop" })           // "Cmin7"
+chordToString(chord, { style: "german" })        // "c7"
+chordToString(chord, { asciiOnly: true })        // "Cm7"  (♭→b, ø→o, etc.)
+chordToString(chord, { style: "jazz",
+  preferExplicitHalfDim: true })                 // "Cm7(b5)" instead of "Cø7"
+```
+
+> Bass note is appended automatically: `chordToString(C_over_E)` → `"C/E"`.
 
 ---
 
@@ -334,7 +410,7 @@ Stack thirds on every scale degree. Results are memoized per `(Scale instance, e
 |--------|-----------|-------------|
 | `parse` | `(notation: string) → RomanNumeralToken` | String → structured token. Supports: case, quality suffixes, secondary function (`V7/ii`), Neapolitan (`bII`). Throws `SyntaxError` if invalid. |
 | `render` | `(token: RomanNumeralToken) → string` | Token → canonical string. |
-| `analyze` | `(chord: Chord, key: Key) → RomanNumeralToken` | Chord + key → token. Throws if root not diatonic. |
+| `analyze` | `(chord: Chord, key: Key) → RomanNumeralToken` | Chord + key → token. **Throws if root is not diatonic to the key.** Wrap in try/catch for non-diatonic chords. |
 | `realize` | `(token: RomanNumeralToken, key: Key) → Chord` | Token + key → concrete chord. |
 
 **`RomanNumeralToken` shape:**
@@ -465,7 +541,7 @@ Classical tonal function analysis.
 | `SpelledNoteName` | `{ letter: NoteLetter; accidental: Accidental }` |
 | `Interval` | `{ number, quality, semitones, isCompound }` |
 | `ValidInterval` | Compile-time validated interval (perfect numbers ↔ perfect quality) |
-| `Scale` | Abstract: root, pattern, pitches + degree/transpose/mode/contains |
+| `Scale` | Abstract: root, pattern, pitches + degree/degreeName/transpose/mode/contains |
 | `ScalePattern` | Recipe: `{ name, category, intervals: SemitonePattern, modes? }` |
 | `Chord` | root, quality, pitches, inversion, bassNote?, intervalStructure |
 | `ChordQuality` | Discriminated union on `kind` (56 variants including `altered`) |
@@ -478,6 +554,8 @@ Classical tonal function analysis.
 | `FunctionalAnalysis` | chord, key, function, role?, isBorrowed |
 | `ChordInterpretation` | chord, confidence, rationale |
 | `KeyDetectionResult` | key, confidence |
+| `ChordNotationOptions` | style?, separator?, preferExplicitHalfDim?, asciiOnly? |
+| `DegreeNameOptions` | style?: DegreeNameStyle |
 
 ### Literal / union types
 
@@ -493,6 +571,8 @@ Classical tonal function analysis.
 | `TonalFunction` | `"tonic" "predominant" "dominant" "ambiguous"` |
 | `RomanDegree` | `"I" "II" "III" "IV" "V" "VI" "VII"` |
 | `ModulationMechanism` | `"pivot-chord" "direct" "secondary-dominant" "chromatic-mediant" "enharmonic" "common-tone"` |
+| `ChordNotationStyle` | `"classical" "jazz" "pop" "german"` |
+| `DegreeNameStyle` | `"functional" "technical" "diatonic" "solfege" "solfege-fixed" "indian" "german"` |
 
 ---
 
@@ -551,7 +631,7 @@ fretboardFactory.build(tuning: Tuning, fretCount = 24): Fretboard
 | `positionsForString` | `(n) → FretPosition[]` | All frets 0…fretCount on string `n`. |
 | `positionsForPitch` | `(pitch) → FretPosition[]` | All positions with same MIDI number. |
 | `positionsForPitchClass` | `(pc) → FretPosition[]` | All positions with same pitch class. |
-| `positionsInRange` | `(from, to) → FretPosition[]` | All positions in fret window. |
+| `positionsInRange` | `(from, to) → FretPosition[]` | All positions in fret window. Backed by a lazy cache — first call on a `Fretboard` instance computes all positions; subsequent calls are O(1) filter. |
 | `stringCount` | `number` | — |
 
 ---
@@ -570,7 +650,8 @@ scaleMapFactory.build(scale: Scale, fretboard: Fretboard): ScaleMap
 | `positionsForString` | `(n) → FretPosition[]` | Scale positions on one string. |
 | `positionsInFretRange` | `(from, to) → FretPosition[]` | Scale positions in fret window. |
 | `positionsForDegree` | `(n) → FretPosition[]` | Positions matching pitch class of scale degree `n` (1-based). |
-| `scalePositions` | `(fretSpan = 4) → ScalePosition[]` | Sliding 4-fret boxes; each tagged with CAGED shape when detectable. |
+| `scalePositions` | `(fretSpan = 4) → ScalePosition[]` | Sliding fret-window boxes; deduplicated by pitch-class fingerprint. No longer tags CAGED shape (use `cagedSystem.shapesForKey` for CAGED context). |
+| `degreeName` | `(degree: number, options?: DegreeNameOptions) → string` | Delegates to `scale.degreeName(degree, options)`. Convenience wrapper for renderer code that only has a `ScaleMap` reference. |
 
 ---
 
@@ -578,10 +659,33 @@ scaleMapFactory.build(scale: Scale, fretboard: Fretboard): ScaleMap
 
 | Method | Signature | Description |
 |---|---|---|
-| `find` | `(chord, fretboard, constraints?) → ChordVoicing[]` | All valid voicings sorted by ergonomic score ascending. |
+| `find` | `(chord, fretboard, constraints?) → ChordVoicing[]` | All valid voicings sorted by ergonomic score ascending. Each voicing is tagged with `shape?: CAGEDShape \| null`. |
 | `findWithFingering` | `(chord, fretboard, constraints?) → Fingering[]` | Same, with finger assignments. Voicings requiring > 4 fingers are skipped. |
 
-**Ergonomic score factors:** fret span × 10 · string skips × 8 · barre +15 · open string −8 · root-not-in-bass +12.
+**`FretboardConstraints` fields** (all optional):
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `maxFretSpan` | `4` | Max frets spanned by fretted notes. |
+| `allowOpenStrings` | `true` | Include open strings. |
+| `requireRootInBass` | `false` | Reject voicings where lowest note ≠ root. |
+| `minStrings` | `3` | Minimum number of played strings. |
+| `maxStrings` | `6` | Maximum number of played strings. |
+| `fromFret` | `0` | Fret window start. |
+| `toFret` | `12` | Fret window end. |
+| `maxVoicings` | `50` | Cap on candidates before sorting. Increase for exhaustive search. |
+
+**Ergonomic score factors:**
+
+| Factor | Points |
+|--------|--------|
+| Fret span | +10 per semitone above 1 |
+| High-up-neck | +5 per fret above 12 (applied to min fret) |
+| String skip | +8 per skipped string between played strings |
+| Barre | +15 |
+| Open string | −8 per open string |
+| Thin voicing (≤ 3 notes) | +5 |
+| CAGED shape identified | −10 (familiar shape bonus) |
 
 ---
 
@@ -608,10 +712,12 @@ Assigns finger 0 to open strings, detects barres (≥2 notes at same fret on con
 
 | Method | Signature | Description |
 |---|---|---|
-| `shapeOf` | `(voicing, root) → CAGEDShape \| null` | Match voicing intervals against C/A/G/E/D templates. |
-| `shapesForKey` | `(key, fretboard) → CAGEDPosition[]` | 5 CAGED positions with scale notes for a key. |
+| `shapeOf` | `(voicing, root) → CAGEDShape \| null` | Match voicing intervals against C/A/G/E/D templates. Returns `null` if no template matches with ≥ 2 overlapping interval classes. |
+| `shapesForKey` | `(key, fretboard) → CAGEDPosition[]` | 5 CAGED positions with scale notes for a key. Takes `Key` (not `Scale`). |
 | `nextShape` | `(shape) → CAGEDShape` | Next shape up the neck (C→A→G→E→D→C). |
 | `prevShape` | `(shape) → CAGEDShape` | Previous shape. |
+
+> `shapeFinder` now calls `cagedSystem.shapeOf` internally and tags each `ChordVoicing` with its detected shape. The shape tag feeds into the ergonomic scorer (−10 bonus for familiar shapes) and is available on the returned voicing objects.
 
 ---
 
@@ -624,6 +730,27 @@ Assigns finger 0 to open strings, detects barres (≥2 notes at same fret on con
 
 ---
 
+## `CHORD_DB` — static voicing database
+
+```ts
+import { CHORD_DB, VoicingTemplate } from "@orpheus/fretboard";
+```
+
+Auto-generated lookup table of guitar voicings keyed by chord symbol string (e.g. `"Am7"`, `"G/B"`).
+
+**`VoicingTemplate` shape:**
+```ts
+{
+  slots: ReadonlyArray<number | null>;  // fret per string (null = muted), low→high
+  baseFret: number;                     // fret at top of diagram (0 = open position)
+  barres?: number[];                    // fret numbers where a barre is applied
+}
+```
+
+> `CHORD_DB` is scaffolded for lookup-based voicing retrieval (bypass `shapeFinder` for well-known shapes). It is not yet wired into `shapeFinder` — integration is planned.
+
+---
+
 ## Fretboard type reference
 
 | Type | Description |
@@ -631,12 +758,13 @@ Assigns finger 0 to open strings, detects barres (≥2 notes at same fret on con
 | `GuitarString` | `{ number: number; openPitch: Pitch }` |
 | `Tuning` | `{ name: string; strings: GuitarString[] }` (ordered high→low) |
 | `FretPosition` | `{ string, fret, pitch }` |
-| `ChordVoicing` | `{ slots: (FretPosition \| null)[]; barre?: BarreSegment }` |
-| `ScalePosition` | `{ positions, fretRange, cagedShape? }` |
+| `ChordVoicing` | `{ slots: (FretPosition \| null)[]; barre?: BarreSegment; shape?: CAGEDShape \| null }` |
+| `ScalePosition` | `{ positions, fretRange }` |
 | `Fingering` | `{ voicing, assignments, difficulty }` |
 | `FingerAssignment` | `{ position, finger: Finger, isBarre }` |
 | `BarreSegment` | `{ fret, fromString, toString, finger: 1 }` |
-| `FretboardConstraints` | `{ maxFretSpan?, allowOpenStrings?, requireRootInBass?, minStrings?, maxStrings?, fromFret?, toFret? }` |
+| `FretboardConstraints` | `{ maxFretSpan?, allowOpenStrings?, requireRootInBass?, minStrings?, maxStrings?, fromFret?, toFret?, maxVoicings? }` |
 | `CAGEDShape` | `"C" \| "A" \| "G" \| "E" \| "D"` |
 | `CAGEDPosition` | `{ shape, rootFret, positions }` |
 | `Finger` | `0 \| 1 \| 2 \| 3 \| 4` |
+| `VoicingTemplate` | `{ slots, baseFret, barres? }` — CHORD_DB entry |

@@ -5,6 +5,7 @@ import type { FretboardConstraints, Fingering } from "../types/fingering.ts";
 import { fingeringAnalyzer } from "../fingering/fingering-analyzer.ts";
 import { scoreVoicing } from "./shape-scorer.ts";
 import { cagedSystem } from "../caged/caged-system.ts";
+import { dbVoicings } from "./db-lookup.ts";
 
 function activeSpan(voicing: ChordVoicing): number {
   const active = voicing.slots
@@ -42,6 +43,47 @@ function* combinations(
   }
 }
 
+/** Signature used for deduplication: "x" for muted, "string:fret" for played. */
+function sig(voicing: ChordVoicing): string {
+  return voicing.slots.map(s => s === null ? "x" : `${s.string}:${s.fret}`).join(",");
+}
+
+/**
+ * Apply all FretboardConstraints filters to a voicing.
+ * Returns false if the voicing should be excluded.
+ */
+function passesConstraints(
+  voicing: ChordVoicing,
+  rootPC: number,
+  maxFretSpan: number,
+  allowOpenStrings: boolean,
+  requireRootInBass: boolean,
+  minStrings: number,
+  maxStrings: number,
+  fromFret: number,
+  toFret: number,
+): boolean {
+  const played = voicing.slots.filter((s): s is FretPosition => s !== null);
+  if (played.length < minStrings || played.length > maxStrings) return false;
+  if (activeSpan(voicing) > maxFretSpan) return false;
+  if (!allowOpenStrings && played.some(p => p.fret === 0)) return false;
+
+  const activeFrets = played.map(p => p.fret).filter(f => f > 0);
+  if (activeFrets.length > 0) {
+    const minF = Math.min(...activeFrets);
+    const maxF = Math.max(...activeFrets);
+    if (maxF > toFret) return false;
+    if (fromFret > 0 && minF < fromFret) return false;
+  }
+
+  if (requireRootInBass) {
+    const lowestPlayed = played.reduce((a, b) => a.string > b.string ? a : b);
+    if ((lowestPlayed.pitch.pitchClass as number) !== rootPC) return false;
+  }
+
+  return true;
+}
+
 export const shapeFinder = {
   find(chord: Chord, fretboard: Fretboard, constraints: FretboardConstraints = {}): ReadonlyArray<ChordVoicing> {
     const {
@@ -53,30 +95,48 @@ export const shapeFinder = {
       fromFret = 0,
       toFret = 12,
       maxVoicings = 50,
+      combinatorial = false,
     } = constraints;
 
-    const requiredPCs = new Set(chord.pitches.map(p => p.pitchClass as number));
     const rootPC = chord.root.pitchClass as number;
+    const seen = new Set<string>();
 
-    // Per-string candidates: positions with a required pitch class, plus null (mute)
+    // ── 1. DB voicings — primary, always first ──────────────────────────────
+    const dbResults: ChordVoicing[] = [];
+
+    for (const dv of dbVoicings(chord, fretboard)) {
+      if (!passesConstraints(dv, rootPC, maxFretSpan, allowOpenStrings,
+          requireRootInBass, minStrings, maxStrings, fromFret, toFret)) continue;
+
+      const s = sig(dv);
+      if (seen.has(s)) continue;
+      seen.add(s);
+      dbResults.push(dv);
+    }
+
+    dbResults.sort((a, b) => scoreVoicing(a) - scoreVoicing(b));
+
+    if (!combinatorial || dbResults.length >= maxVoicings) {
+      return dbResults.slice(0, maxVoicings);
+    }
+
+    // ── 2. Combinatorial generator — supplementary, appended after DB ───────
+    const requiredPCs = new Set(chord.pitches.map(p => p.pitchClass as number));
     const stringNumbers = fretboard.tuning.strings.map(s => s.number);
     const perString: Array<Array<FretPosition | null>> = stringNumbers.map(sn => {
       const candidates = fretboard.positionsForString(sn)
         .filter(p => p.fret >= (allowOpenStrings ? 0 : 1) && p.fret <= toFret && p.fret >= fromFret)
         .filter(p => requiredPCs.has(p.pitch.pitchClass as number));
-      return [null, ...candidates]; // null = muted
+      return [null, ...candidates];
     });
 
-    const results: ChordVoicing[] = [];
-    const seen = new Set<string>();
+    const algoResults: ChordVoicing[] = [];
+    const remaining = maxVoicings - dbResults.length;
 
     for (const combo of combinations(perString)) {
       const played = combo.filter((s): s is FretPosition => s !== null);
-      if (played.length < minStrings) continue;
-      if (played.length > maxStrings) continue; 
+      if (played.length < minStrings || played.length > maxStrings) continue;
 
-
-      // Check fret span
       const voicing: ChordVoicing = { slots: combo };
       if (activeSpan(voicing) > maxFretSpan) continue;
 
@@ -88,31 +148,24 @@ export const shapeFinder = {
       }
       if (!allCovered) continue;
 
-      // Root-in-bass constraint
       if (requireRootInBass) {
-        const lowestPlayed = played.reduce((a, b) => a.string > b.string ? a : b); // highest string number = lowest pitch
+        const lowestPlayed = played.reduce((a, b) => a.string > b.string ? a : b);
         if (lowestPlayed.pitch.pitchClass !== rootPC) continue;
       }
 
-      // Deduplicate by (string, fret) signature
-      const sig = combo.map(s => s === null ? "x" : `${s.string}:${s.fret}`).join(",");
-      if (seen.has(sig)) continue;
-      seen.add(sig);
+      const s = sig(voicing);
+      if (seen.has(s)) continue;
+      seen.add(s);
 
       const shape = cagedSystem.shapeOf(voicing, chord.root);
+      algoResults.push({ ...voicing, shape });
 
-      const tagged: ChordVoicing = {
-        ...voicing,
-        shape,
-      };
-
-      results.push(tagged);
-      if (results.length >= maxVoicings) break;
-
+      if (algoResults.length >= remaining) break;
     }
 
-    results.sort((a, b) => scoreVoicing(a) - scoreVoicing(b));
-    return results;
+    algoResults.sort((a, b) => scoreVoicing(a) - scoreVoicing(b));
+
+    return [...dbResults, ...algoResults];
   },
 
   findWithFingering(chord: Chord, fretboard: Fretboard, constraints: FretboardConstraints = {}): ReadonlyArray<Fingering> {
